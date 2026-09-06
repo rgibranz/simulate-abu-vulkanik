@@ -3,30 +3,37 @@ import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import L from 'leaflet'
 import { ParticleLayer } from '../map/ParticleLayer.js'
 import { DepositionLayer } from '../map/DepositionLayer.js'
+import { WindArrowLayer } from '../map/WindArrowLayer.js'
+import { createWindField } from '../engine/windField.js'
 import { createVaacAdvisories } from '../engine/vaacAdvisories.js'
 import { locatedEventsUpTo } from '../utils/events.js'
 import { formatWibShort } from '../utils/formatTime.js'
 import { simConfig } from '../config/simConfig.js'
 
-const props = defineProps({ datasets: { type: Object, required: true }, simulation: { type: Object, required: true } })
+const props = defineProps({
+  datasets: { type: Object, required: true },
+  simulation: { type: Object, required: true },
+  layers: { type: Object, required: true },
+})
 
 const container = ref(null)
-let map, particleLayer, depositionLayer, offFrame
+let map, particleLayer, depositionLayer, windArrowLayer, provinceLayer, placeGroup, offFrame
 let vaacGroup, eventGroup, shownAdvisoryNr = null, shownEventIds = ''
 const { domain, deposition } = simConfig
 const vaacAdvisories = createVaacAdvisories(props.datasets.vaac)
 
 function addPlaces(places) {
+  placeGroup = L.layerGroup().addTo(map)
   L.marker([places.volcano.lat, places.volcano.lon], {
     icon: L.divIcon({ className: 'volcano-icon', html: '▲', iconSize: [20, 20], iconAnchor: [10, 10] }),
-  }).bindTooltip(places.volcano.name, { permanent: true, direction: 'bottom', className: 'place-label' }).addTo(map)
+  }).bindTooltip(places.volcano.name, { permanent: true, direction: 'bottom', className: 'place-label' }).addTo(placeGroup)
   for (const c of places.cities) {
     L.circleMarker([c.lat, c.lon], { radius: 3, color: '#f2f2f2', weight: 1, fillOpacity: 0.9 })
-      .bindTooltip(c.name, { permanent: true, direction: 'right', className: 'place-label' }).addTo(map)
+      .bindTooltip(c.name, { permanent: true, direction: 'right', className: 'place-label' }).addTo(placeGroup)
   }
   for (const a of places.airports) {
     L.circleMarker([a.lat, a.lon], { radius: 4, color: '#ffd166', weight: 2, fillOpacity: 0.2 })
-      .bindTooltip(`${a.code} · ${a.name}`, { direction: 'top' }).addTo(map)
+      .bindTooltip(`${a.code} · ${a.name}`, { direction: 'top' }).addTo(placeGroup)
   }
 }
 
@@ -60,6 +67,20 @@ function updateEventMarkers(tMs) {
   }
 }
 
+function toggleGroup(layer, on) {
+  if (!layer) return
+  if (on && !map.hasLayer(layer)) layer.addTo(map)
+  if (!on && map.hasLayer(layer)) map.removeLayer(layer)
+}
+
+function applyLayers() {
+  const l = props.layers
+  particleLayer.setVisibility({ low: l.lowAsh, high: l.highAsh })
+  depositionLayer.setVisible(l.ashfall)
+  toggleGroup(vaacGroup, l.vaac); toggleGroup(eventGroup, l.places); toggleGroup(placeGroup, l.places); toggleGroup(provinceLayer, l.provinces)
+  windArrowLayer.setState({ visible: l.wind, levelIndex: l.windLevel, tMs: props.simulation.currentTimeMs.value })
+}
+
 onMounted(() => {
   map = L.map(container.value, { center: [-6.3, 106.2], zoom: 7, zoomControl: true, attributionControl: true })
   // CARTO sekarang minta API key; Esri Dark Gray Canvas gratis dengan atribusi
@@ -67,14 +88,16 @@ onMounted(() => {
     attribution: 'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, DeLorme, NAVTEQ',
     maxZoom: 16,
   }).addTo(map)
-  L.geoJSON(props.datasets.provinces, { style: { color: '#8a94a6', weight: 1, fillOpacity: 0.02, interactive: false } }).addTo(map)
+  provinceLayer = L.geoJSON(props.datasets.provinces, { style: { color: '#8a94a6', weight: 1, fillOpacity: 0.02, interactive: false } }).addTo(map)
   addPlaces(props.datasets.places)
 
   depositionLayer = new DepositionLayer().addTo(map)
   particleLayer = new ParticleLayer({ lowTopKm: simConfig.lowLayerTopKm }).addTo(map)
+  windArrowLayer = new WindArrowLayer({ windField: createWindField(props.datasets.wind) }).addTo(map)
   vaacGroup = L.layerGroup().addTo(map)
   eventGroup = L.layerGroup().addTo(map)
   updateVaac(props.simulation.currentTimeMs.value); updateEventMarkers(props.simulation.currentTimeMs.value)
+  applyLayers()
 
   // frame dari worker → canvas (bukan lewat reaktivitas Vue)
   offFrame = props.simulation.onFrame((frame) => {
@@ -87,7 +110,12 @@ onMounted(() => {
   })
 })
 
-watch(() => props.simulation.currentTimeMs.value, (t) => { if (map) { updateVaac(t); updateEventMarkers(t) } })
+watch(() => props.simulation.currentTimeMs.value, (t) => {
+  if (!map) return
+  updateVaac(t); updateEventMarkers(t)
+  windArrowLayer.setState({ visible: props.layers.wind, levelIndex: props.layers.windLevel, tMs: t })
+})
+watch(() => ({ ...props.layers }), () => { if (map) applyLayers() }, { deep: true })
 
 onBeforeUnmount(() => { offFrame?.(); map?.remove() })
 
