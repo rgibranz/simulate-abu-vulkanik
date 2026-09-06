@@ -101,6 +101,7 @@ h1 { margin: 0; font-size: 22px; font-weight: 600; line-height: 1.15; letter-spa
 .banner { position: absolute; left: 16px; right: 16px; bottom: 96px; z-index: 1100; padding: 10px 14px; background: #4a1d17; border: 1px solid #a3402f; border-radius: 6px; display: flex; gap: 12px; align-items: center; font-size: 13px; }
 @media (max-width: 767px) {
   h1 { font-size: 17px; } .dates { font-size: 13px; } .header p { display: none; }
-  .side { top: auto; bottom: 112px; right: 12px; max-height: 42vh; overflow: auto; width: 230px; }
+  .side { top: auto; bottom: 170px; right: 12px; max-height: 42vh; overflow: auto; width: 230px; }
+  .side.collapsed { width: auto; right: auto; left: 12px; } /* kiri, biar nggak nabrak kontrol zoom */
 }
 </style>
