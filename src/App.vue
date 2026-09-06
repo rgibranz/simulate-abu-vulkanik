@@ -5,6 +5,7 @@ import { useSimulation } from './composables/useSimulation.js'
 import { simConfig } from './config/simConfig.js'
 import MapView from './components/MapView.vue'
 import TimelineBar from './components/TimelineBar.vue'
+import EventCard from './components/EventCard.vue'
 
 const datasets = useDatasets()
 const simulation = useSimulation()
@@ -22,6 +23,7 @@ watch(() => datasets.status.value, (s) => { if (s === 'ready') simulation.init(d
     </div>
     <template v-else>
       <MapView :datasets="datasets.data.value" :simulation="simulation" />
+      <EventCard :events="datasets.data.value.events.events" :current-time-ms="simulation.currentTimeMs.value" />
       <TimelineBar :simulation="simulation" :start-ms="startMs" :end-ms="endMs" :events="datasets.data.value.events.events" />
       <div v-if="simulation.error.value" class="err">{{ simulation.error.value }}</div>
     </template>
