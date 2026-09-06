@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build:data": "node scripts/build-data.mjs",
+    "build:himawari": "node scripts/build-himawari.mjs",
     "prebuild": "npm run build:data",
     "build": "vite build",
     "preview": "vite preview",
