@@ -1,0 +1,17 @@
+{
+  "volcano": { "name": "Anak Krakatau", "lat": -6.102, "lon": 105.423 },
+  "cities": [
+    { "name": "Jakarta", "lat": -6.2, "lon": 106.85 },
+    { "name": "Tangerang", "lat": -6.18, "lon": 106.63 },
+    { "name": "Depok", "lat": -6.4, "lon": 106.82 },
+    { "name": "Bogor", "lat": -6.6, "lon": 106.8 },
+    { "name": "Serang", "lat": -6.12, "lon": 106.15 },
+    { "name": "Bandar Lampung", "lat": -5.43, "lon": 105.26 },
+    { "name": "Bandung", "lat": -6.91, "lon": 107.61 }
+  ],
+  "airports": [
+    { "code": "CGK", "name": "Soekarno-Hatta", "lat": -6.125, "lon": 106.656 },
+    { "code": "HLP", "name": "Halim Perdanakusuma", "lat": -6.267, "lon": 106.891 },
+    { "code": "TKG", "name": "Radin Inten II", "lat": -5.24, "lon": 105.176 }
+  ]
+}

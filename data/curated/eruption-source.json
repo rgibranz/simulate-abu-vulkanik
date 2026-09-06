@@ -1,0 +1,10 @@
+{
+  "series": [
+    { "timeUtc": "2026-09-04T00:00:00Z", "heightKm": 1.5, "note": "VAAC 162 FL050, background phase" },
+    { "timeUtc": "2026-09-04T16:00:00Z", "heightKm": 2.1, "note": "VAAC 163 FL070" },
+    { "timeUtc": "2026-09-04T16:30:00Z", "heightKm": 13.7, "note": "VAAC 164 FL450, major eruption from 23:07 WIB" },
+    { "timeUtc": "2026-09-04T16:40:00Z", "heightKm": 14.6, "note": "VAAC 165 FL480" },
+    { "timeUtc": "2026-09-04T17:50:00Z", "heightKm": 15.2, "note": "JMA/VAAC ~15 km, FL500 continuous (171-183)" },
+    { "timeUtc": "2026-09-06T02:00:00Z", "heightKm": 6.1, "note": "VAAC 184: FL500 detached, continuous emission to FL200" }
+  ]
+}
