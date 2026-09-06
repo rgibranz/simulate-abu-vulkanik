@@ -1,16 +1,19 @@
 <script setup>
 import { computed } from 'vue'
 import { formatWib, formatUtc, formatWibShort } from '../utils/formatTime.js'
+import { stepPath, scaleLinear } from '../utils/series.js'
 
 const props = defineProps({
   simulation: { type: Object, required: true },
   startMs: { type: Number, required: true },
   endMs: { type: Number, required: true },
   events: { type: Array, default: () => [] },
+  eruptionSeries: { type: Array, default: () => [] }, // [{ timeUtc, heightKm }]
 })
 const STEP_MS = 600e3
 const SPEEDS = [0.5, 1, 2, 4]
 const KIND_ICON = { eruption: '▲', advisory: '◆', ashfall: '●', aviation: '✈', report: '■' }
+const PLUME_W = 1000, PLUME_H = 16
 
 const maxStep = computed(() => Math.round((props.endMs - props.startMs) / STEP_MS))
 const sliderValue = computed(() => Math.round((props.simulation.currentTimeMs.value - props.startMs) / STEP_MS))
@@ -18,6 +21,22 @@ const ticks = computed(() => props.events.map(e => {
   const t = Date.parse(e.timeUtc)
   return { ...e, tMs: t, pct: ((t - props.startMs) / (props.endMs - props.startMs)) * 100, icon: KIND_ICON[e.kind] ?? '•' }
 }).filter(e => e.pct >= 0 && e.pct <= 100))
+
+// tinggi kolom abu sebagai area tangga di belakang tick
+const plume = computed(() => {
+  const pts = props.eruptionSeries.map(s => ({ tMs: Date.parse(s.timeUtc), h: s.heightKm })).sort((a, b) => a.tMs - b.tMs)
+  if (!pts.length) return { d: '', maxKm: 0 }
+  const maxKm = Math.max(...pts.map(p => p.h))
+  const x = scaleLinear(props.startMs, props.endMs, 0, PLUME_W), y = scaleLinear(0, maxKm, PLUME_H, 1)
+  const clipped = pts.map(p => [Math.max(0, x(p.tMs)), y(p.h)])
+  const line = stepPath(clipped, PLUME_W)
+  return { d: `${line} V${PLUME_H} H${clipped[0][0]} Z`, maxKm }
+})
+const plumeNow = computed(() => {
+  let h = props.eruptionSeries[0]?.heightKm ?? 0
+  for (const s of props.eruptionSeries) if (Date.parse(s.timeUtc) <= props.simulation.currentTimeMs.value) h = s.heightKm
+  return h
+})
 
 let seekTimer = null
 function onInput(ev) {
@@ -39,6 +58,10 @@ function toggle() { props.simulation.playing.value ? props.simulation.pause() : 
       <button v-for="s in SPEEDS" :key="s" :class="{ active: simulation.speed.value === s }" @click="simulation.setSpeed(s)">{{ s }}×</button>
     </div>
     <div class="track">
+      <svg class="plume" :viewBox="`0 0 ${PLUME_W} ${PLUME_H}`" preserveAspectRatio="none" aria-hidden="true">
+        <title>Tinggi kolom abu, maksimum {{ plume.maxKm }} km</title>
+        <path :d="plume.d" />
+      </svg>
       <div class="ticks">
         <button v-for="e in ticks" :key="e.id" class="tick" :class="e.kind" :style="{ left: e.pct + '%' }" :title="`${formatWibShort(e.tMs)} — ${e.title}`" @click="simulation.seek(e.tMs)">{{ e.icon }}</button>
       </div>
@@ -46,7 +69,7 @@ function toggle() { props.simulation.playing.value ? props.simulation.pause() : 
     </div>
     <div class="clock">
       <div class="wib">{{ formatWib(simulation.currentTimeMs.value) }}</div>
-      <div class="utc">{{ formatUtc(simulation.currentTimeMs.value) }}, {{ simulation.aliveCount.value.toLocaleString('id-ID') }} partikel di udara<span v-if="simulation.seeking.value">, memuat…</span></div>
+      <div class="utc">{{ formatUtc(simulation.currentTimeMs.value) }}, {{ simulation.aliveCount.value.toLocaleString('id-ID') }} partikel di udara, kolom {{ plumeNow.toLocaleString('id-ID') }} km<span v-if="simulation.seeking.value">, memuat…</span></div>
     </div>
   </div>
 </template>
@@ -60,11 +83,13 @@ function toggle() { props.simulation.playing.value ? props.simulation.pause() : 
 .speeds button { background: transparent; border: none; color: var(--ash); border-radius: 4px; padding: 3px 8px; font-size: 12px; font-variant-numeric: tabular-nums; cursor: pointer; }
 .speeds button.active { background: var(--bone); color: var(--ink); font-weight: 600; }
 .track { flex: 1; position: relative; padding-top: 18px; }
-.track input { width: 100%; margin: 0; accent-color: var(--ember); }
+.track input { width: 100%; margin: 0; accent-color: var(--ember); position: relative; }
+.plume { position: absolute; left: 0; right: 0; top: 0; width: 100%; height: 16px; }
+.plume path { fill: rgba(255, 90, 60, 0.14); stroke: rgba(255, 90, 60, 0.7); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .ticks { position: absolute; left: 0; right: 0; top: 0; height: 16px; }
 .tick { position: absolute; transform: translateX(-50%); background: none; border: none; color: var(--ash); font-size: 10px; cursor: pointer; padding: 0; line-height: 16px; }
 .tick.eruption { color: var(--ember); } .tick.ashfall { color: var(--ashfall); } .tick.aviation { color: #ffd166; } .tick.advisory { color: var(--sky); }
-.clock { min-width: 230px; text-align: right; }
+.clock { min-width: 250px; text-align: right; }
 .wib { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .utc { font-size: 12px; color: var(--ash); font-variant-numeric: tabular-nums; }
 @media (max-width: 767px) { .timeline { flex-wrap: wrap; gap: 10px; padding: 10px 12px; } .track { order: 3; flex-basis: 100%; } .clock { min-width: 0; flex: 1; text-align: right; } }
