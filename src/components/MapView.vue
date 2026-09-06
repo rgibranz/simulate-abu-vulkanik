@@ -4,23 +4,29 @@ import L from 'leaflet'
 import { ParticleLayer } from '../map/ParticleLayer.js'
 import { DepositionLayer } from '../map/DepositionLayer.js'
 import { WindArrowLayer } from '../map/WindArrowLayer.js'
-import { createWindField } from '../engine/windField.js'
 import { createVaacAdvisories } from '../engine/vaacAdvisories.js'
+import { createDepositionGrid } from '../engine/deposition.js'
 import { locatedEventsUpTo } from '../utils/events.js'
 import { formatWibShort } from '../utils/formatTime.js'
+import { summarizePoint } from '../utils/mapInfo.js'
 import { simConfig } from '../config/simConfig.js'
 
 const props = defineProps({
   datasets: { type: Object, required: true },
   simulation: { type: Object, required: true },
   layers: { type: Object, required: true },
+  windField: { type: Object, required: true },
 })
 
 const container = ref(null)
 let map, particleLayer, depositionLayer, windArrowLayer, provinceLayer, placeGroup, offFrame
-let vaacGroup, eventGroup, shownAdvisoryNr = null, shownEventIds = ''
+let vaacGroup, vaacForecastGroup, eventGroup, shownAdvisoryNr = null, shownEventIds = ''
+let lastFrame = null
 const { domain, deposition } = simConfig
 const vaacAdvisories = createVaacAdvisories(props.datasets.vaac)
+// grid endapan lokal (salinan dari frame) buat popup klik
+const depositionGrid = createDepositionGrid({ ...domain, cellDeg: deposition.cellDeg })
+let depositionMax = 0
 
 function addPlaces(places) {
   placeGroup = L.layerGroup().addTo(map)
@@ -37,20 +43,31 @@ function addPlaces(places) {
   }
 }
 
-// poligon observasi VAAC terakhir ≤ t; digambar ulang hanya kalau advisory-nya ganti
+const obsLabel = (iso) => `${iso.slice(8, 10)}/${iso.slice(11, 13)}${iso.slice(14, 16)}Z`
+
+// poligon observasi + prakiraan VAAC terakhir ≤ t; digambar ulang hanya kalau advisory-nya ganti
 function updateVaac(tMs) {
   const a = vaacAdvisories.latestObsAt(tMs)
   const nr = a?.nr ?? null
   if (nr === shownAdvisoryNr) return
-  shownAdvisoryNr = nr; vaacGroup.clearLayers()
+  shownAdvisoryNr = nr; vaacGroup.clearLayers(); vaacForecastGroup.clearLayers()
   if (!a) return
   for (const layer of a.layers) {
     const high = layer.topFl >= 500
-    const obs = `${a.obsUtc.slice(8, 10)}/${a.obsUtc.slice(11, 13)}${a.obsUtc.slice(14, 16)}Z`
     const mov = layer.moveKt != null ? ` MOV ${layer.moveDeg}° ${layer.moveKt}KT` : ''
     L.polygon(layer.polygon, { color: high ? '#ff4d4d' : '#ffa53c', weight: 1.5, dashArray: '6 4', fill: false, interactive: true })
-      .bindTooltip(`VAAC ${a.nr} · obs ${obs} · SFC/FL${layer.topFl}${mov}`, { sticky: true })
+      .bindTooltip(`VAAC ${a.nr} · observasi ${obsLabel(a.obsUtc)} · SFC/FL${layer.topFl}${mov}`, { sticky: true })
       .addTo(vaacGroup)
+  }
+  // prakiraan +6/+12/+18 jam: makin jauh makin pudar
+  const opacities = { 6: 0.75, 12: 0.5, 18: 0.32 }
+  for (const f of a.forecasts) {
+    for (const layer of f.layers) {
+      const high = layer.topFl >= 500
+      L.polygon(layer.polygon, { color: high ? '#ff4d4d' : '#ffa53c', weight: 1, dashArray: '2 5', opacity: opacities[f.hours] ?? 0.3, fill: false, interactive: true })
+        .bindTooltip(`Prakiraan VAAC ${a.nr} +${f.hours} jam · berlaku ${obsLabel(f.validUtc)} · SFC/FL${layer.topFl}`, { sticky: true })
+        .addTo(vaacForecastGroup)
+    }
   }
 }
 
@@ -77,8 +94,29 @@ function applyLayers() {
   const l = props.layers
   particleLayer.setVisibility({ low: l.lowAsh, high: l.highAsh })
   depositionLayer.setVisible(l.ashfall)
-  toggleGroup(vaacGroup, l.vaac); toggleGroup(eventGroup, l.places); toggleGroup(placeGroup, l.places); toggleGroup(provinceLayer, l.provinces)
+  toggleGroup(vaacGroup, l.vaac); toggleGroup(vaacForecastGroup, l.vaacForecast)
+  toggleGroup(eventGroup, l.places); toggleGroup(placeGroup, l.places); toggleGroup(provinceLayer, l.provinces)
   windArrowLayer.setState({ visible: l.wind, levelIndex: l.windLevel, tMs: props.simulation.currentTimeMs.value })
+}
+
+const fmtNum = (n) => Math.round(n).toLocaleString('id-ID')
+
+// klik peta → ringkasan titik itu
+function onMapClick(ev) {
+  const { lat, lng } = ev.latlng
+  const info = summarizePoint({
+    lat, lon: lng, frame: lastFrame, grid: { max: depositionMax, cellIndex: depositionGrid.cellIndex, values: depositionGrid.values },
+    windField: props.windField, levelIndex: props.layers.windLevel, tMs: props.simulation.currentTimeMs.value,
+    vent: simConfig.vent, places: props.datasets.places, lowTopKm: simConfig.lowLayerTopKm,
+  })
+  const rows = [
+    `<b>${lat.toFixed(2)}°, ${lng.toFixed(2)}°</b> · ${fmtNum(info.fromVentKm)} km ${info.bearingName} kawah`,
+    info.deposition ? `Endapan abu: ${info.deposition.value > 0 ? `${Math.max(1, Math.round(info.deposition.fraction * 100))} % dari maksimum` : 'belum ada'}` : 'Endapan abu: belum ada',
+    `Partikel dalam ${info.particles.radiusKm} km: ${fmtNum(info.particles.low)} rendah, ${fmtNum(info.particles.high)} tinggi`,
+    info.wind ? `Angin ${info.wind.levelName} (${info.wind.altKm} km): ${fmtNum(info.wind.speedKmh)} km/jam ke ${info.wind.toName}` : 'Angin: di luar cakupan data',
+    info.nearestPlace ? `Kota terdekat: ${info.nearestPlace.name} (${fmtNum(info.nearestPlace.distanceKm)} km)` : '',
+  ].filter(Boolean)
+  L.popup({ className: 'info-popup', maxWidth: 280 }).setLatLng(ev.latlng).setContent(rows.join('<br>')).openOn(map)
 }
 
 onMounted(() => {
@@ -94,19 +132,21 @@ onMounted(() => {
 
   depositionLayer = new DepositionLayer().addTo(map)
   particleLayer = new ParticleLayer({ lowTopKm: simConfig.lowLayerTopKm }).addTo(map)
-  windArrowLayer = new WindArrowLayer({ windField: createWindField(props.datasets.wind) }).addTo(map)
+  windArrowLayer = new WindArrowLayer({ windField: props.windField }).addTo(map)
   vaacGroup = L.layerGroup().addTo(map)
+  vaacForecastGroup = L.layerGroup()
   eventGroup = L.layerGroup().addTo(map)
   updateVaac(props.simulation.currentTimeMs.value); updateEventMarkers(props.simulation.currentTimeMs.value)
   applyLayers()
+  map.on('click', onMapClick)
 
   // frame dari worker → canvas (bukan lewat reaktivitas Vue)
   offFrame = props.simulation.onFrame((frame) => {
+    lastFrame = frame
     particleLayer.setFrame(frame)
     if (frame.deposition) {
-      const rows = Math.round((domain.latMax - domain.latMin) / deposition.cellDeg)
-      const cols = Math.round((domain.lonMax - domain.lonMin) / deposition.cellDeg)
-      depositionLayer.setGrid({ values: frame.deposition, max: frame.depositionMax, rows, cols, cellDeg: deposition.cellDeg, latMin: domain.latMin, lonMin: domain.lonMin })
+      depositionGrid.restore(frame.deposition); depositionMax = frame.depositionMax
+      depositionLayer.setGrid({ values: frame.deposition, max: frame.depositionMax, rows: depositionGrid.rows, cols: depositionGrid.cols, cellDeg: deposition.cellDeg, latMin: domain.latMin, lonMin: domain.lonMin })
     }
   })
 })
@@ -120,7 +160,7 @@ watch(() => ({ ...props.layers }), () => { if (map) applyLayers() }, { deep: tru
 
 onBeforeUnmount(() => { offFrame?.(); map?.remove() })
 
-defineExpose({ getMap: () => map, getParticleLayer: () => particleLayer, getDepositionLayer: () => depositionLayer, getOverlayGroups: () => ({ vaacGroup, eventGroup }) })
+defineExpose({ getMap: () => map, getParticleLayer: () => particleLayer, getDepositionLayer: () => depositionLayer, getOverlayGroups: () => ({ vaacGroup, vaacForecastGroup, eventGroup }) })
 </script>
 
 <template>
@@ -144,5 +184,8 @@ defineExpose({ getMap: () => map, getParticleLayer: () => particleLayer, getDepo
 .leaflet-container .leaflet-control-attribution a { color: var(--ash); }
 .leaflet-tooltip { background: var(--smoke); color: var(--bone); border: 1px solid var(--line); font: 12px var(--font); }
 .leaflet-tooltip-top::before { border-top-color: var(--line); }
+.info-popup .leaflet-popup-content-wrapper { background: var(--smoke); color: var(--bone); border: 1px solid var(--line); border-radius: 6px; font: 12.5px/1.5 var(--font); }
+.info-popup .leaflet-popup-tip { background: var(--smoke); }
+.info-popup .leaflet-popup-close-button { color: var(--ash); }
 @media (max-width: 767px) { .leaflet-bottom { bottom: 150px; } }
 </style>
