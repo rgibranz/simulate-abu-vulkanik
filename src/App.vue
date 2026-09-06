@@ -31,6 +31,8 @@ const videoLayers = reactive({ ...baseVideoLayers })
 const satelliteOnlyLayers = reactive({ ...baseVideoLayers, lowAsh: false, highAsh: false, ashfall: false, vaac: false })
 const simOnlyLayers = reactive({ ...baseVideoLayers, satellite: false })
 const focusStats = ref({ nearestKm: null, within: 0 })
+const videoScene = ref(null) // adegan aktif varian "wind"
+const VIDEO_ARROWS = { maxLenPx: 90, lineWidth: 4, color: 'rgba(127, 209, 255, 0.95)' }
 const startMs = Date.parse(simConfig.startUtc), endMs = Date.parse(simConfig.endUtc)
 const sideCollapsed = ref(window.innerWidth < 768)
 const aboutOpen = ref(false)
@@ -87,7 +89,14 @@ function installVideoHook() {
   window.__sim = {
     get ready() { return simulation.status.value === 'ready' },
     get currentTimeMs() { return simulation.currentTimeMs.value },
+    scenes: video.scenes ? video.scenes.map(s => ({ id: s.id, start: s.start, end: s.end, hoursPerSec: s.hoursPerSec })) : null,
     setPhase(p) { videoPhase.value = p },
+    // adegan varian wind: ganti layer + teks; null = kembali ke layer dasar
+    setScene(i) {
+      const scene = video.scenes?.[i] ?? null
+      videoScene.value = scene
+      Object.assign(videoLayers, baseVideoLayers, scene?.layers ?? {})
+    },
     seek(tMs) {
       return new Promise((resolve) => {
         const off = simulation.onFrame((f) => { if (f.tMs >= tMs - 1) { off(); resolve(f.tMs) } })
@@ -110,8 +119,8 @@ function reload() { window.location.reload() }
           <div class="pane"><MapView :datasets="datasets.data.value" :simulation="simulation" :layers="satelliteOnlyLayers" :wind-field="windField" :view="video.view" :show-caption="false" :zoom-control="false" /></div>
           <div class="pane"><MapView :datasets="datasets.data.value" :simulation="simulation" :layers="simOnlyLayers" :wind-field="windField" :view="video.view" :show-caption="false" :zoom-control="false" /></div>
         </div>
-        <MapView v-else :datasets="datasets.data.value" :simulation="simulation" :layers="videoLayers" :wind-field="windField" :view="video.view" :show-caption="false" :zoom-control="false" :focus="video.focus" />
-        <VideoFrame :orientation="video.orientation" :variant="video.variant" :phase="videoPhase" :current-time-ms="simulation.currentTimeMs.value" :start-ms="startMs" :end-ms="endMs" :events="datasets.data.value.events.events" :himawari="datasets.data.value.himawari" :site-url="SITE_URL" :handle="HANDLE" :focus="video.focus" :focus-stats="focusStats" />
+        <MapView v-else :datasets="datasets.data.value" :simulation="simulation" :layers="videoLayers" :wind-field="windField" :view="video.view" :show-caption="false" :zoom-control="false" :focus="video.focus" :arrow-style="VIDEO_ARROWS" />
+        <VideoFrame :orientation="video.orientation" :variant="video.variant" :phase="videoPhase" :scene="videoScene" :current-time-ms="simulation.currentTimeMs.value" :start-ms="startMs" :end-ms="endMs" :events="datasets.data.value.events.events" :himawari="datasets.data.value.himawari" :site-url="SITE_URL" :handle="HANDLE" :focus="video.focus" :focus-stats="focusStats" />
       </template>
     </template>
 

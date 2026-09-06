@@ -19,6 +19,7 @@ const PRESETS = {
   'ciangsana-square': { orientation: 'square', variant: 'ciangsana', start: '2026-09-05T05:00:00Z', end: '2026-09-06T12:00:00Z', hoursPerSec: 1.5 },
   'teaser-portrait': { orientation: 'portrait', variant: 'teaser', start: '2026-09-05T12:00:00Z', end: '2026-09-06T03:00:00Z', hoursPerSec: 1.5, intro: 1.5, outro: 1.5 },
   'split-landscape': { orientation: 'landscape', variant: 'split' },
+  'wind-portrait': { orientation: 'portrait', variant: 'wind', scenes: true, intro: 1.5, outro: 1.5 }, // jendela waktu per adegan dari app (window.__sim.scenes)
 }
 
 const args = Object.fromEntries(process.argv.slice(2).filter(a => a.startsWith('--')).map(a => { const [k, v] = a.slice(2).split('='); return [k, v ?? true] }))
@@ -62,15 +63,22 @@ async function renderPreset(browser, name) {
   write(await shot(), Math.round(cfg.intro * cfg.fps))
 
   await page.evaluate(() => window.__sim.setPhase('main')); await settle(page)
-  const stepMs = (cfg.hoursPerSec * 3600e3) / cfg.fps
-  const frames = Math.floor((endMs - startMs) / stepMs) + 1
+  // adegan terprogram (varian wind) atau satu jendela linear
+  const scenes = cfg.scenes ? await page.evaluate(() => window.__sim.scenes) : [{ start: cfg.start, end: args.quick ? new Date(endMs).toISOString() : cfg.end, hoursPerSec: cfg.hoursPerSec }]
   const t0 = Date.now()
-  for (let i = 0; i < frames; i++) {
-    await page.evaluate(t => window.__sim.seek(t), startMs + i * stepMs)
-    await settle(page)
-    write(await shot())
-    if (i % 150 === 0) console.log(`${name}: frame ${i}/${frames} (${((Date.now() - t0) / 1000).toFixed(0)} s)`)
+  for (let s = 0; s < scenes.length; s++) {
+    const sc = scenes[s]
+    if (cfg.scenes) { await page.evaluate(i => window.__sim.setScene(i), s) }
+    const sStart = Date.parse(sc.start), sEnd = Date.parse(sc.end), stepMs = (sc.hoursPerSec * 3600e3) / cfg.fps
+    const frames = Math.floor((sEnd - sStart) / stepMs) + 1
+    for (let i = 0; i < frames; i++) {
+      await page.evaluate(t => window.__sim.seek(t), sStart + i * stepMs)
+      await settle(page)
+      write(await shot())
+      if (i % 150 === 0) console.log(`${name}: scene ${s + 1}/${scenes.length} frame ${i}/${frames} (${((Date.now() - t0) / 1000).toFixed(0)} s)`)
+    }
   }
+  if (cfg.scenes) await page.evaluate(() => window.__sim.setScene(null))
 
   await page.evaluate(() => window.__sim.setPhase('outro')); await settle(page)
   write(await shot(), Math.round(cfg.outro * cfg.fps))

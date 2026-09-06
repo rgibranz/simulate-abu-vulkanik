@@ -17,6 +17,7 @@ const props = defineProps({
   handle: { type: String, default: '' }, // watermark pemilik, mis. @rgibranz
   focus: { type: Object, default: null }, // { name, lat, lon, radiusKm }
   focusStats: { type: Object, default: null }, // { nearestKm, within }
+  scene: { type: Object, default: null }, // adegan aktif varian wind: { level, title, text }
 })
 
 const KIND_LABEL = { eruption: 'Erupsi', advisory: 'Advisory VAAC', ashfall: 'Laporan hujan abu', aviation: 'Penerbangan', report: 'Laporan' }
@@ -25,6 +26,7 @@ const COPY = {
   teaser: { kicker: '48 jam dalam 13 detik', title: 'Abu Krakatau ke Jakarta', dates: '5–6 September 2026', lead: '' },
   ciangsana: { kicker: 'Cerita dari Gunung Putri, Bogor', title: 'Abu Krakatau sampai Ciangsana?', dates: '5–6 September 2026', lead: '160 km dari kawah. Anginnya ke barat. Kok bisa nyampe?' },
   split: { kicker: 'Kiri: citra Himawari-9 asli · Kanan: simulasi partikel', title: 'Satelit vs simulasi', dates: '4–6 September 2026', lead: 'Dua gambar, satu jam yang sama.' },
+  wind: { kicker: 'Anak Krakatau, 5–6 September 2026', title: 'Anginnya ke barat. Kok abunya sampai Jakarta?', dates: 'Jawabannya di ketinggian', lead: '' },
 }
 const copy = computed(() => COPY[props.variant] ?? COPY.regional)
 const event = computed(() => latestEventAt(props.events, props.currentTimeMs))
@@ -65,7 +67,12 @@ const focusLine = computed(() => {
           <div class="since">{{ hoursSince < 1 ? 'Sebelum erupsi besar' : `${Math.floor(hoursSince)} jam setelah erupsi besar` }}<span v-if="satellite"> · citra Himawari-9 {{ formatWib(satellite.tMs).slice(-9) }}</span></div>
           <div v-if="focusLine" class="focus">{{ focusLine }}</div>
         </div>
-        <div v-if="event && variant !== 'teaser'" class="event" :class="event.kind">
+        <div v-if="scene" class="event scene">
+          <div v-if="scene.level" class="kind">Panah = arah abu dibawa · {{ scene.level }}</div>
+          <div class="title">{{ scene.title }}</div>
+          <div class="desc">{{ scene.text }}</div>
+        </div>
+        <div v-else-if="event && variant !== 'teaser'" class="event" :class="event.kind">
           <div class="kind">{{ KIND_LABEL[event.kind] ?? event.kind }}</div>
           <div class="title">{{ event.title }}</div>
           <div class="desc">{{ event.description }}</div>
@@ -121,6 +128,7 @@ h1 { margin: 0; font-size: 88px; font-weight: 600; line-height: 1.05; letter-spa
 .focus { font-size: 28px; color: #ffd166; margin-top: 10px; font-variant-numeric: tabular-nums; }
 .event { margin-top: 24px; padding-left: 20px; border-left: 6px solid var(--ash); }
 .event.eruption { border-color: var(--ember); } .event.ashfall { border-color: var(--ashfall); } .event.aviation { border-color: #ffd166; } .event.advisory { border-color: var(--sky); }
+.event.scene { border-color: var(--sky); } .event.scene .title { font-size: 44px; } .event.scene .desc { font-size: 30px; }
 .kind { font-size: 24px; color: var(--ash); }
 .title { font-size: 40px; font-weight: 600; line-height: 1.15; margin-top: 4px; }
 .event.compact .title { font-size: 34px; margin-top: 0; }

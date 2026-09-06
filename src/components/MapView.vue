@@ -21,6 +21,7 @@ const props = defineProps({
   showCaption: { type: Boolean, default: true },
   zoomControl: { type: Boolean, default: true },
   focus: { type: Object, default: null }, // { name, lat, lon, radiusKm } — marker rumah di mode video
+  arrowStyle: { type: Object, default: null }, // { maxLenPx, lineWidth, color } — panah angin lebih besar di video
 })
 
 const container = ref(null)
@@ -166,7 +167,7 @@ onMounted(() => {
 
   depositionLayer = new DepositionLayer().addTo(map)
   particleLayer = new ParticleLayer({ lowTopKm: simConfig.lowLayerTopKm }).addTo(map)
-  windArrowLayer = new WindArrowLayer({ windField: props.windField }).addTo(map)
+  windArrowLayer = new WindArrowLayer({ windField: props.windField, ...(props.arrowStyle ?? {}) }).addTo(map)
   vaacGroup = L.layerGroup().addTo(map)
   vaacForecastGroup = L.layerGroup()
   eventGroup = L.layerGroup().addTo(map)

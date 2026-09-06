@@ -16,6 +16,13 @@ describe('useVideoMode', () => {
     const c = useVideoMode('?video=portrait&variant=ciangsana')
     expect(c.view.zoom).toBe(9); expect(c.focus.name).toMatch(/Ciangsana/); expect(c.focus.radiusKm).toBe(30)
   })
+  it('wind variant exposes scripted scenes with ordered time windows', () => {
+    const w = useVideoMode('?video=portrait&variant=wind')
+    expect(w.scenes.length).toBe(4)
+    for (const s of w.scenes) expect(Date.parse(s.end)).toBeGreaterThan(Date.parse(s.start))
+    expect(w.scenes[0].layers.windLevel).toBe(5); expect(w.view.zoom).toBe(8)
+    expect(useVideoMode('?video=portrait').scenes).toBeNull()
+  })
   it('teaser reuses the regional view; split falls back to landscape view', () => {
     expect(useVideoMode('?video=portrait&variant=teaser').view.zoom).toBe(8)
     const sp = useVideoMode('?video=landscape&variant=split'); expect(sp.variant).toBe('split'); expect(sp.focus).toBeNull()

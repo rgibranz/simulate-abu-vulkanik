@@ -1,12 +1,16 @@
 import L from 'leaflet'
 import { createProjector } from './projection.js'
 
-const MAX_LEN_PX = 36, REF_SPEED = 30 // m/s → panjang panah maksimum
+const REF_SPEED = 30 // m/s → panjang panah maksimum
 const HALF_HOUR = 1800e3
 
 // Panah angin di simpul grid untuk satu level, diperbarui tiap 30 menit sim
+// options: windField, maxLenPx (36), lineWidth (1.5), color
 export const WindArrowLayer = L.Layer.extend({
-  initialize(options) { L.setOptions(this, options); this._windField = options.windField; this._state = { visible: false, levelIndex: 2, tMs: 0 }; this._slot = null },
+  initialize(options) {
+    L.setOptions(this, options); this._windField = options.windField; this._state = { visible: false, levelIndex: 2, tMs: 0 }; this._slot = null
+    this._maxLen = options.maxLenPx ?? 36; this._lineWidth = options.lineWidth ?? 1.5; this._color = options.color ?? 'rgba(127, 209, 255, 0.85)'
+  },
   onAdd(map) {
     this._map = map
     this._canvas = L.DomUtil.create('canvas', 'wind-arrow-canvas'); this._canvas.style.pointerEvents = 'none'
@@ -35,17 +39,18 @@ export const WindArrowLayer = L.Layer.extend({
     const t = Math.min(Math.max(tMs, wf.timeStartMs), wf.timeEndMs)
     const b = this._map.getBounds()
     const proj = createProjector({ west: b.getWest(), east: b.getEast(), north: b.getNorth(), south: b.getSouth(), width, height })
-    ctx.strokeStyle = 'rgba(127, 209, 255, 0.85)'; ctx.fillStyle = ctx.strokeStyle; ctx.lineWidth = 1.5
+    const maxLen = this._maxLen, head = Math.max(6, maxLen / 6)
+    ctx.strokeStyle = this._color; ctx.fillStyle = this._color; ctx.lineWidth = this._lineWidth; ctx.lineCap = 'round'
     for (const lat of wf.lats) for (const lon of wf.lons) {
       const w = wf.sample(lat, lon, alt, t); if (!w) continue
-      const [x, y] = proj.toPixel(lon, lat); if (x < -40 || y < -40 || x > width + 40 || y > height + 40) continue
-      const speed = Math.hypot(w.u, w.v), len = Math.min(MAX_LEN_PX, (speed / REF_SPEED) * MAX_LEN_PX)
+      const [x, y] = proj.toPixel(lon, lat); if (x < -maxLen || y < -maxLen || x > width + maxLen || y > height + maxLen) continue
+      const speed = Math.hypot(w.u, w.v), len = Math.min(maxLen, (speed / REF_SPEED) * maxLen)
       const dx = (w.u / (speed || 1)) * len, dy = (-w.v / (speed || 1)) * len // layar: y ke bawah
       ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + dx, y + dy); ctx.stroke()
       const ang = Math.atan2(dy, dx)
       ctx.beginPath(); ctx.moveTo(x + dx, y + dy)
-      ctx.lineTo(x + dx - 6 * Math.cos(ang - 0.5), y + dy - 6 * Math.sin(ang - 0.5))
-      ctx.lineTo(x + dx - 6 * Math.cos(ang + 0.5), y + dy - 6 * Math.sin(ang + 0.5)); ctx.closePath(); ctx.fill()
+      ctx.lineTo(x + dx - head * Math.cos(ang - 0.5), y + dy - head * Math.sin(ang - 0.5))
+      ctx.lineTo(x + dx - head * Math.cos(ang + 0.5), y + dy - head * Math.sin(ang + 0.5)); ctx.closePath(); ctx.fill()
     }
   },
 })
