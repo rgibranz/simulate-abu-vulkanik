@@ -26,7 +26,7 @@ const COPY = {
   teaser: { kicker: '48 jam dalam 13 detik', title: 'Abu Krakatau ke Jakarta', dates: '5–6 September 2026', lead: '' },
   ciangsana: { kicker: 'Cerita dari Gunung Putri, Bogor', title: 'Abu Krakatau sampai Ciangsana?', dates: '5–6 September 2026', lead: '160 km dari kawah. Anginnya ke barat. Kok bisa nyampe?' },
   split: { kicker: 'Kiri: citra Himawari-9 asli · Kanan: simulasi partikel', title: 'Satelit vs simulasi', dates: '4–6 September 2026', lead: 'Dua gambar, satu jam yang sama.' },
-  wind: { kicker: 'Anak Krakatau, 5–6 September 2026', title: 'Anginnya ke barat. Kok abunya sampai Jakarta?', dates: 'Jawabannya di ketinggian', lead: '' },
+  wind: { kicker: 'Anak Krakatau, 5–6 September 2026', title: 'Anginnya ke barat. Kok abunya sampai Jakarta?', dates: 'Jawabannya di ketinggian', lead: '', brand: 'Abu Krakatau ke Jakarta', brandDates: '5–6 Sep 2026' },
 }
 const copy = computed(() => COPY[props.variant] ?? COPY.regional)
 const event = computed(() => latestEventAt(props.events, props.currentTimeMs))
@@ -55,7 +55,7 @@ const focusLine = computed(() => {
 
     <!-- strip utama -->
     <template v-else-if="phase === 'main'">
-      <div class="brand">{{ copy.title }} <span>{{ copy.dates.replace('September', 'Sep') }}</span></div>
+      <div class="brand">{{ copy.brand ?? copy.title }} <span>{{ (copy.brandDates ?? copy.dates).replace('September', 'Sep') }}</span></div>
       <template v-if="variant === 'split'">
         <div class="pane-label left">Citra Himawari-9 (asli)</div>
         <div class="pane-label right">Simulasi partikel abu</div>
@@ -120,7 +120,7 @@ h1 { margin: 0; font-size: 88px; font-weight: 600; line-height: 1.05; letter-spa
 .handle { position: absolute; right: 40px; top: 36px; z-index: 2; padding: 8px 18px; font-size: 30px; font-weight: 600; color: var(--bone); background: rgba(27, 26, 25, 0.55); border: 1px solid rgba(239, 233, 223, 0.25); border-radius: 999px; text-shadow: 0 2px 8px #000; }
 .credit { margin: 8px 0 0 !important; font-size: 30px !important; color: var(--bone) !important; }
 
-.brand { position: absolute; left: 40px; top: 36px; font-size: 34px; font-weight: 600; text-shadow: 0 2px 12px #000; white-space: nowrap; }
+.brand { position: absolute; left: 40px; top: 36px; font-size: 34px; font-weight: 600; text-shadow: 0 2px 12px #000; white-space: nowrap; max-width: calc(100% - 340px); overflow: hidden; text-overflow: ellipsis; }
 .brand span { color: var(--ash); font-weight: 500; margin-left: 12px; }
 .strip { position: absolute; left: 0; right: 0; bottom: 0; padding: 36px 40px 56px; background: linear-gradient(180deg, rgba(27, 26, 25, 0) 0%, rgba(27, 26, 25, 0.82) 22%, rgba(27, 26, 25, 0.94) 100%); }
 .wib { font-size: 52px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
