@@ -39,8 +39,9 @@ function addPlaces(places) {
     icon: L.divIcon({ className: 'volcano-icon', html: '▲', iconSize: [20, 20], iconAnchor: [10, 10] }),
   }).bindTooltip(places.volcano.name, { permanent: true, direction: 'bottom', className: 'place-label' }).addTo(placeGroup)
   for (const c of places.cities) {
+    // Tangerang di kiri Jakarta: labelnya ke kiri biar nggak nimpa "Jakarta"
     L.circleMarker([c.lat, c.lon], { radius: 3, color: '#f2f2f2', weight: 1, fillOpacity: 0.9 })
-      .bindTooltip(c.name, { permanent: true, direction: 'right', className: 'place-label' }).addTo(placeGroup)
+      .bindTooltip(c.name, { permanent: true, direction: c.name === 'Tangerang' ? 'left' : 'right', className: 'place-label' }).addTo(placeGroup)
   }
   for (const a of places.airports) {
     L.circleMarker([a.lat, a.lon], { radius: 4, color: '#ffd166', weight: 2, fillOpacity: 0.2 })
