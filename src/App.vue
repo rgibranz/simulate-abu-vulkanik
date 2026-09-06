@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { createWindField } from './engine/windField.js'
 import { useDatasets } from './composables/useDatasets.js'
 import { useSimulation } from './composables/useSimulation.js'
 import { useLayers } from './composables/useLayers.js'
@@ -10,6 +11,8 @@ import EventCard from './components/EventCard.vue'
 import LayerPanel from './components/LayerPanel.vue'
 import Legend from './components/Legend.vue'
 import AboutPanel from './components/AboutPanel.vue'
+import AirQualityChart from './components/AirQualityChart.vue'
+import WindProfile from './components/WindProfile.vue'
 
 const INITIAL_UTC = '2026-09-04T16:00:00Z' // sesaat sebelum erupsi besar (spec §6)
 const datasets = useDatasets()
@@ -18,6 +21,8 @@ const layers = useLayers()
 const startMs = Date.parse(simConfig.startUtc), endMs = Date.parse(simConfig.endUtc)
 const sideCollapsed = ref(window.innerWidth < 768)
 const aboutOpen = ref(false)
+// medan angin di main thread (buat panah, profil kawah, popup klik); worker punya salinannya sendiri
+const windField = computed(() => (datasets.data.value ? createWindField(datasets.data.value.wind) : null))
 
 onMounted(() => datasets.load())
 watch(() => datasets.status.value, (s) => { if (s === 'ready') simulation.init(datasets.data.value, simConfig) })
@@ -45,16 +50,17 @@ function reload() { window.location.reload() }
     </div>
 
     <template v-else>
-      <MapView :datasets="datasets.data.value" :simulation="simulation" :layers="layers" />
+      <MapView :datasets="datasets.data.value" :simulation="simulation" :layers="layers" :wind-field="windField" />
       <EventCard :events="datasets.data.value.events.events" :current-time-ms="simulation.currentTimeMs.value" />
+      <AirQualityChart v-if="layers.pm10" :air-quality="datasets.data.value.airQuality" :current-time-ms="simulation.currentTimeMs.value" :start-ms="startMs" :end-ms="endMs" />
       <aside class="side" :class="{ collapsed: sideCollapsed }">
         <button class="collapse" :aria-label="sideCollapsed ? 'Tampilkan lapisan' : 'Sembunyikan lapisan'" @click="sideCollapsed = !sideCollapsed">{{ sideCollapsed ? 'Lapisan' : '✕' }}</button>
-        <div v-show="!sideCollapsed"><LayerPanel :layers="layers" /><Legend /></div>
+        <div v-show="!sideCollapsed"><LayerPanel :layers="layers" /><Legend /><WindProfile :wind-field="windField" :current-time-ms="simulation.currentTimeMs.value" :vent="simConfig.vent" /></div>
       </aside>
       <div v-if="simulation.status.value === 'error'" class="banner">
         Simulasi berhenti: {{ simulation.error.value }} <button class="primary" @click="reload">Muat ulang</button>
       </div>
-      <TimelineBar :simulation="simulation" :start-ms="startMs" :end-ms="endMs" :events="datasets.data.value.events.events" />
+      <TimelineBar :simulation="simulation" :start-ms="startMs" :end-ms="endMs" :events="datasets.data.value.events.events" :eruption-series="datasets.data.value.eruptionSource.series" />
     </template>
 
     <AboutPanel :open="aboutOpen" @close="aboutOpen = false" />

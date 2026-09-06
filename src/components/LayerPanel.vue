@@ -4,7 +4,8 @@ defineProps({ layers: { type: Object, required: true } })
 const levels = simConfig.levels
 const rows = [
   ['lowAsh', 'Abu rendah, 0–6 km'], ['highAsh', 'Abu tinggi, 6–16 km'], ['ashfall', 'Endapan abu di darat'],
-  ['vaac', 'Poligon abu VAAC'], ['wind', 'Panah angin'], ['provinces', 'Batas provinsi'], ['places', 'Kota dan bandara'],
+  ['vaac', 'Poligon abu VAAC'], ['vaacForecast', 'Prakiraan VAAC +6/+12/+18 jam'], ['wind', 'Panah angin'],
+  ['provinces', 'Batas provinsi'], ['places', 'Kota dan bandara'], ['pm10', 'Grafik PM10 (CAMS)'],
 ]
 </script>
 

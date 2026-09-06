@@ -4,11 +4,11 @@ import { useDatasets } from '../../src/composables/useDatasets.js'
 const okFetch = async (url) => ({ ok: true, json: async () => ({ url }) })
 
 describe('useDatasets', () => {
-  it('loads all six files relative to baseUrl', async () => {
+  it('loads all seven files relative to baseUrl', async () => {
     const ds = useDatasets({ fetchFn: okFetch, baseUrl: '/app/' })
     await ds.load()
     expect(ds.status.value).toBe('ready')
-    expect(Object.keys(ds.data.value).sort()).toEqual(['eruptionSource', 'events', 'places', 'provinces', 'vaac', 'wind'])
+    expect(Object.keys(ds.data.value).sort()).toEqual(['airQuality', 'eruptionSource', 'events', 'places', 'provinces', 'vaac', 'wind'])
     expect(ds.data.value.eruptionSource.url).toBe('/app/data/eruption-source.json')
   })
   it('reports which file failed', async () => {

@@ -1,6 +1,6 @@
 import { ref, shallowRef } from 'vue'
 
-const FILES = { wind: 'wind.json', vaac: 'vaac.json', eruptionSource: 'eruption-source.json', events: 'events.json', places: 'places.json', provinces: 'provinces.json' }
+const FILES = { wind: 'wind.json', vaac: 'vaac.json', eruptionSource: 'eruption-source.json', events: 'events.json', places: 'places.json', provinces: 'provinces.json', airQuality: 'air-quality.json' }
 
 export function useDatasets({ fetchFn = (u) => fetch(u), baseUrl = import.meta.env.BASE_URL } = {}) {
   const status = ref('idle'), error = ref(null), data = shallowRef(null)
