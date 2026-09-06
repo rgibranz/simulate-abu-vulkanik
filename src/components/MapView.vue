@@ -20,6 +20,7 @@ const props = defineProps({
   view: { type: Object, default: null }, // { center, zoom } — dipakai mode video
   showCaption: { type: Boolean, default: true },
   zoomControl: { type: Boolean, default: true },
+  focus: { type: Object, default: null }, // { name, lat, lon, radiusKm } — marker rumah di mode video
 })
 
 const container = ref(null)
@@ -46,6 +47,13 @@ function addPlaces(places) {
   for (const a of places.airports) {
     L.circleMarker([a.lat, a.lon], { radius: 4, color: '#ffd166', weight: 2, fillOpacity: 0.2 })
       .bindTooltip(`${a.code} · ${a.name}`, { direction: 'top' }).addTo(placeGroup)
+  }
+  // titik fokus (mode video Ciangsana): rumah + lingkaran radius
+  const f = props.focus
+  if (f) {
+    L.circle([f.lat, f.lon], { radius: (f.radiusKm ?? 30) * 1000, color: '#ffd166', weight: 1.5, dashArray: '4 6', fill: false, interactive: false }).addTo(placeGroup)
+    L.marker([f.lat, f.lon], { icon: L.divIcon({ className: 'focus-icon', html: '⌂', iconSize: [28, 28], iconAnchor: [14, 14] }), interactive: false })
+      .bindTooltip(f.name.split(',')[0], { permanent: true, direction: 'right', className: 'place-label focus-label' }).addTo(placeGroup)
   }
 }
 
@@ -207,6 +215,8 @@ defineExpose({ getMap: () => map, getParticleLayer: () => particleLayer, getDepo
 .place-label { background: transparent; border: none; box-shadow: none; color: #e6e9ef; font: 11px system-ui, sans-serif; text-shadow: 0 0 3px #000; }
 .place-label::before { display: none; }
 .volcano-icon { color: #ff5a3c; font-size: 18px; line-height: 20px; text-align: center; text-shadow: 0 0 6px #000; }
+.focus-icon { color: #ffd166; font-size: 26px; line-height: 28px; text-align: center; text-shadow: 0 0 6px #000; }
+.focus-label { color: #ffd166; font-weight: 600; }
 /* kontrol bawah Leaflet naik di atas timeline bar */
 .leaflet-bottom { bottom: 92px; }
 .leaflet-bar a { background: var(--smoke); color: var(--bone); border-bottom-color: var(--line); }

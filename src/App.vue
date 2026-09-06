@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref, shallowRef, watch } from 'vue'
 import { createWindField } from './engine/windField.js'
+import { M_PER_DEG_LAT, metersPerDegLon } from './engine/geo.js'
 import { useDatasets } from './composables/useDatasets.js'
 import { useSimulation } from './composables/useSimulation.js'
 import { useLayers } from './composables/useLayers.js'
@@ -18,13 +19,18 @@ import VideoFrame from './components/VideoFrame.vue'
 
 const INITIAL_UTC = '2026-09-04T16:00:00Z' // sesaat sebelum erupsi besar (spec §6)
 const SITE_URL = 'rgibranz.github.io/simulate-abu-vulkanik'
+const HANDLE = '@rgibranz' // watermark video
 const datasets = useDatasets()
 const simulation = useSimulation()
 const layers = useLayers()
 const video = useVideoMode()
 const videoPhase = ref('main')
-// layer tetap untuk render video: satelit nyala, panel/grafik mati
-const videoLayers = reactive({ lowAsh: true, highAsh: true, ashfall: true, vaac: true, vaacForecast: false, wind: false, windLevel: 2, windModel: 'best', provinces: true, places: true, pm10: false, satellite: true })
+// layer tetap untuk render video: satelit nyala, panel/grafik mati; split = satelit kiri, simulasi kanan
+const baseVideoLayers = { lowAsh: true, highAsh: true, ashfall: true, vaac: true, vaacForecast: false, wind: false, windLevel: 2, windModel: 'best', provinces: true, places: true, pm10: false, satellite: true }
+const videoLayers = reactive({ ...baseVideoLayers })
+const satelliteOnlyLayers = reactive({ ...baseVideoLayers, lowAsh: false, highAsh: false, ashfall: false, vaac: false })
+const simOnlyLayers = reactive({ ...baseVideoLayers, satellite: false })
+const focusStats = ref({ nearestKm: null, within: 0 })
 const startMs = Date.parse(simConfig.startUtc), endMs = Date.parse(simConfig.endUtc)
 const sideCollapsed = ref(window.innerWidth < 768)
 const aboutOpen = ref(false)
@@ -60,8 +66,24 @@ watch(() => layers.windModel, async (model) => {
   } catch (e) { windError.value = e.message }
 })
 
+// jarak abu rendah terdekat + jumlah dalam radius dari titik fokus (mode video Ciangsana)
+function updateFocusStats(frame) {
+  const f = video.focus
+  if (!f) return
+  const p = frame.positions, mPerDegLon = metersPerDegLon(f.lat), rM = (f.radiusKm ?? 30) * 1000
+  let nearest = Infinity, within = 0
+  for (let i = 0; i < frame.count * 4; i += 4) {
+    if (p[i + 2] > simConfig.lowLayerTopKm) continue
+    const d = Math.hypot((p[i] - f.lon) * mPerDegLon, (p[i + 1] - f.lat) * M_PER_DEG_LAT)
+    if (d < nearest) nearest = d
+    if (d < rM) within++
+  }
+  focusStats.value = { nearestKm: Number.isFinite(nearest) ? nearest / 1000 : null, within }
+}
+
 // kait buat scripts/render-video.mjs: seek deterministik + ganti fase kartu
 function installVideoHook() {
+  simulation.onFrame(updateFocusStats)
   window.__sim = {
     get ready() { return simulation.status.value === 'ready' },
     get currentTimeMs() { return simulation.currentTimeMs.value },
@@ -83,9 +105,13 @@ function reload() { window.location.reload() }
     <!-- mode render video: peta + overlay VideoFrame saja -->
     <template v-if="video.enabled">
       <div v-if="datasets.status.value !== 'ready'" class="overlay"><p>Memuat…</p></div>
-      <template v-else>
-        <MapView v-if="windField" :datasets="datasets.data.value" :simulation="simulation" :layers="videoLayers" :wind-field="windField" :view="video.view" :show-caption="false" :zoom-control="false" />
-        <VideoFrame :orientation="video.orientation" :phase="videoPhase" :current-time-ms="simulation.currentTimeMs.value" :start-ms="startMs" :end-ms="endMs" :events="datasets.data.value.events.events" :himawari="datasets.data.value.himawari" :site-url="SITE_URL" />
+      <template v-else-if="windField">
+        <div v-if="video.variant === 'split'" class="split">
+          <div class="pane"><MapView :datasets="datasets.data.value" :simulation="simulation" :layers="satelliteOnlyLayers" :wind-field="windField" :view="video.view" :show-caption="false" :zoom-control="false" /></div>
+          <div class="pane"><MapView :datasets="datasets.data.value" :simulation="simulation" :layers="simOnlyLayers" :wind-field="windField" :view="video.view" :show-caption="false" :zoom-control="false" /></div>
+        </div>
+        <MapView v-else :datasets="datasets.data.value" :simulation="simulation" :layers="videoLayers" :wind-field="windField" :view="video.view" :show-caption="false" :zoom-control="false" :focus="video.focus" />
+        <VideoFrame :orientation="video.orientation" :variant="video.variant" :phase="videoPhase" :current-time-ms="simulation.currentTimeMs.value" :start-ms="startMs" :end-ms="endMs" :events="datasets.data.value.events.events" :himawari="datasets.data.value.himawari" :site-url="SITE_URL" :handle="HANDLE" :focus="video.focus" :focus-stats="focusStats" />
       </template>
     </template>
 
@@ -158,6 +184,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible
 
 <style scoped>
 .app { position: fixed; inset: 0; color: var(--bone); background: var(--ink); font-family: var(--font); }
+.split { position: absolute; inset: 0; display: flex; }
+.pane { position: relative; flex: 1; overflow: hidden; }
 .header { position: absolute; left: 16px; top: 14px; right: 16px; z-index: 1000; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; }
 .header > * { pointer-events: auto; }
 .title { max-width: 560px; }
