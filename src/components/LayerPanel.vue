@@ -1,5 +1,6 @@
 <script setup>
 import { simConfig } from '../config/simConfig.js'
+import { WIND_MODELS } from '../composables/useDatasets.js'
 defineProps({ layers: { type: Object, required: true } })
 const levels = simConfig.levels
 const rows = [
@@ -21,6 +22,13 @@ const rows = [
         <option v-for="(lv, i) in levels" :key="lv.name" :value="i">{{ lv.name }}, {{ lv.altKm }} km</option>
       </select>
     </label>
+    <h4 class="sub">Model angin penggerak</h4>
+    <label class="row">
+      <select v-model="layers.windModel" aria-label="Model angin">
+        <option v-for="m in WIND_MODELS" :key="m.key" :value="m.key">{{ m.label }}</option>
+      </select>
+    </label>
+    <p class="hint">Ganti model = simulasi dihitung ulang dari awal sampai waktu sekarang.</p>
   </section>
 </template>
 
@@ -30,4 +38,6 @@ const rows = [
 .row input { accent-color: var(--ash); margin: 0; }
 .row.indent { padding-left: 22px; color: var(--ash); }
 select { flex: 1; background: var(--smoke); color: var(--bone); border: 1px solid var(--line); border-radius: 4px; padding: 3px 6px; font-size: 12px; }
+.panel h4.sub { margin-top: 12px; }
+.hint { margin: 4px 0 0; font-size: 11px; color: var(--ash); line-height: 1.4; }
 </style>

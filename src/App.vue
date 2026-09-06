@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { createWindField } from './engine/windField.js'
 import { useDatasets } from './composables/useDatasets.js'
 import { useSimulation } from './composables/useSimulation.js'
@@ -21,12 +21,34 @@ const layers = useLayers()
 const startMs = Date.parse(simConfig.startUtc), endMs = Date.parse(simConfig.endUtc)
 const sideCollapsed = ref(window.innerWidth < 768)
 const aboutOpen = ref(false)
+const windData = shallowRef(null) // dataset angin yang sedang dipakai (ikut layers.windModel)
+const windError = ref(null)
+let resumeMs = null // waktu yang dikembalikan setelah worker di-init ulang
+
 // medan angin di main thread (buat panah, profil kawah, popup klik); worker punya salinannya sendiri
-const windField = computed(() => (datasets.data.value ? createWindField(datasets.data.value.wind) : null))
+const windField = computed(() => (windData.value ? createWindField(windData.value) : null))
 
 onMounted(() => datasets.load())
-watch(() => datasets.status.value, (s) => { if (s === 'ready') simulation.init(datasets.data.value, simConfig) })
-watch(() => simulation.status.value, (s) => { if (s === 'ready') simulation.seek(Date.parse(INITIAL_UTC)) })
+watch(() => datasets.status.value, (s) => {
+  if (s !== 'ready') return
+  windData.value = datasets.data.value.wind
+  simulation.init(datasets.data.value, simConfig)
+})
+watch(() => simulation.status.value, (s) => {
+  if (s !== 'ready') return
+  simulation.seek(resumeMs ?? Date.parse(INITIAL_UTC)); resumeMs = null
+})
+// ganti model angin → muat file-nya, hitung ulang simulasi sampai waktu yang sama
+watch(() => layers.windModel, async (model) => {
+  if (datasets.status.value !== 'ready') return
+  try {
+    windError.value = null
+    const wind = await datasets.loadWind(model)
+    windData.value = wind
+    resumeMs = simulation.currentTimeMs.value
+    simulation.init({ ...datasets.data.value, wind }, simConfig)
+  } catch (e) { windError.value = e.message }
+})
 
 function reload() { window.location.reload() }
 </script>
@@ -50,16 +72,24 @@ function reload() { window.location.reload() }
     </div>
 
     <template v-else>
-      <MapView :datasets="datasets.data.value" :simulation="simulation" :layers="layers" :wind-field="windField" />
+      <MapView v-if="windField" :datasets="datasets.data.value" :simulation="simulation" :layers="layers" :wind-field="windField" />
       <EventCard :events="datasets.data.value.events.events" :current-time-ms="simulation.currentTimeMs.value" />
       <AirQualityChart v-if="layers.pm10" :air-quality="datasets.data.value.airQuality" :current-time-ms="simulation.currentTimeMs.value" :start-ms="startMs" :end-ms="endMs" />
       <aside class="side" :class="{ collapsed: sideCollapsed }">
         <button class="collapse" :aria-label="sideCollapsed ? 'Tampilkan lapisan' : 'Sembunyikan lapisan'" @click="sideCollapsed = !sideCollapsed">{{ sideCollapsed ? 'Lapisan' : '✕' }}</button>
-        <div v-show="!sideCollapsed"><LayerPanel :layers="layers" /><Legend /><WindProfile :wind-field="windField" :current-time-ms="simulation.currentTimeMs.value" :vent="simConfig.vent" /></div>
+        <div v-show="!sideCollapsed">
+          <LayerPanel :layers="layers" />
+          <Legend />
+          <WindProfile v-if="windField" :wind-field="windField" :current-time-ms="simulation.currentTimeMs.value" :vent="simConfig.vent" />
+        </div>
       </aside>
       <div v-if="simulation.status.value === 'error'" class="banner">
         Simulasi berhenti: {{ simulation.error.value }} <button class="primary" @click="reload">Muat ulang</button>
       </div>
+      <div v-else-if="windError" class="banner">
+        Model angin gagal dimuat: {{ windError }}
+      </div>
+      <div v-else-if="simulation.status.value === 'loading'" class="banner soft">Menghitung ulang dengan model angin baru…</div>
       <TimelineBar :simulation="simulation" :start-ms="startMs" :end-ms="endMs" :events="datasets.data.value.events.events" :eruption-series="datasets.data.value.eruptionSource.series" />
     </template>
 
@@ -100,11 +130,12 @@ h1 { margin: 0; font-size: 22px; font-weight: 600; line-height: 1.15; letter-spa
 .overlay { position: absolute; inset: 0; display: grid; place-content: center; gap: 12px; text-align: center; color: var(--ash); }
 .primary { background: var(--ember); color: #fff; border: none; border-radius: 6px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
 .err { color: #ff8a73; max-width: 48ch; }
-.side { position: absolute; right: 16px; top: 96px; z-index: 1000; width: 256px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; backdrop-filter: blur(8px); }
+.side { position: absolute; right: 16px; top: 96px; z-index: 1000; width: 256px; max-height: calc(100vh - 200px); overflow: auto; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; backdrop-filter: blur(8px); }
 .side.collapsed { width: auto; padding: 0; border: none; background: none; }
 .collapse { float: right; background: none; border: none; color: var(--ash); cursor: pointer; font-size: 13px; padding: 0 0 6px 8px; }
 .side.collapsed .collapse { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; float: none; color: var(--bone); }
 .banner { position: absolute; left: 16px; right: 16px; bottom: 96px; z-index: 1100; padding: 10px 14px; background: #4a1d17; border: 1px solid #a3402f; border-radius: 6px; display: flex; gap: 12px; align-items: center; font-size: 13px; }
+.banner.soft { background: var(--panel); border-color: var(--line); color: var(--ash); left: auto; right: 16px; bottom: 100px; }
 @media (max-width: 767px) {
   h1 { font-size: 17px; } .dates { font-size: 13px; } .header p { display: none; }
   .side { top: auto; bottom: 170px; right: 12px; max-height: 42vh; overflow: auto; width: 230px; }

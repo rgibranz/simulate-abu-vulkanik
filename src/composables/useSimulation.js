@@ -27,7 +27,10 @@ export function useSimulation({ createWorker = defaultCreateWorker } = {}) {
     }
   }
 
+  // boleh dipanggil ulang (ganti model angin): worker lama dimatikan dulu
   function init(datasets, config) {
+    if (worker) worker.terminate()
+    playing.value = false; seeking.value = false; latestFrame = null
     worker = createWorker()
     worker.onmessage = handleMessage
     worker.onerror = (e) => { error.value = e.message || 'Worker crashed'; status.value = 'error'; playing.value = false }

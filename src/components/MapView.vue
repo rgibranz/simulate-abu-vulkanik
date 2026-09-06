@@ -157,6 +157,7 @@ watch(() => props.simulation.currentTimeMs.value, (t) => {
   windArrowLayer.setState({ visible: props.layers.wind, levelIndex: props.layers.windLevel, tMs: t })
 })
 watch(() => ({ ...props.layers }), () => { if (map) applyLayers() }, { deep: true })
+watch(() => props.windField, (wf) => { if (windArrowLayer && wf) windArrowLayer.setWindField(wf) })
 
 onBeforeUnmount(() => { offFrame?.(); map?.remove() })
 

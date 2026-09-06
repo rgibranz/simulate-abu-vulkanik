@@ -12,7 +12,8 @@ import { createSimController } from '../src/engine/simController.js'
 import { pointInPolygon, metersPerDegLon, M_PER_DEG_LAT } from '../src/engine/geo.js'
 import { formatWib } from '../src/utils/formatTime.js'
 
-const args = Object.fromEntries(process.argv.slice(2).filter(a => a.startsWith('--')).map(a => { const [k, v] = a.slice(2).split('='); return [k, Number(v)] }))
+const args = Object.fromEntries(process.argv.slice(2).filter(a => a.startsWith('--')).map(a => { const [k, v] = a.slice(2).split('='); return [k, k === 'wind' ? v : Number(v)] }))
+const WIND_FILE = args.wind && args.wind !== 'best' ? `wind-${args.wind}.json` : 'wind.json' // --wind=ecmwf|gfs|icon
 const config = {
   ...simConfig,
   seed: args.seed ?? simConfig.seed,
@@ -24,7 +25,7 @@ const NEAR_KM = args.near ?? 30
 const ROOT = resolve(import.meta.dirname, '..')
 const load = (f) => JSON.parse(readFileSync(resolve(ROOT, 'public/data', f), 'utf8'))
 
-const windField = createWindField(load('wind.json'))
+const windField = createWindField(load(WIND_FILE))
 const vaac = createVaacAdvisories(load('vaac.json'))
 const eruptionSource = createEruptionSource(load('eruption-source.json').series, config.emission)
 const deposition = createDepositionGrid({ ...config.domain, cellDeg: config.deposition.cellDeg })
@@ -49,7 +50,7 @@ function checkJakarta() {
   return false
 }
 
-console.log(`nudge=${config.vaacNudge} kh=${config.diffusion.horizontalM2s} umbrella=${config.emission.umbrellaFactor} umbrellaFraction=${config.emission.umbrellaFraction} seed=${config.seed}`)
+console.log(`wind=${WIND_FILE} nudge=${config.vaacNudge} kh=${config.diffusion.horizontalM2s} umbrella=${config.emission.umbrellaFactor} umbrellaFraction=${config.emission.umbrellaFraction} seed=${config.seed}`)
 console.log('nr        | obs (WIB)              | low in/total (frac) | high in/total (frac) | alive | low near JKT')
 const scores = []
 for (const a of vaac.all) {

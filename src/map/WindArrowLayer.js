@@ -14,6 +14,7 @@ export const WindArrowLayer = L.Layer.extend({
     map.on('moveend zoomend resize', this._reset, this); this._reset()
   },
   onRemove(map) { map.off('moveend zoomend resize', this._reset, this); L.DomUtil.remove(this._canvas); this._map = null },
+  setWindField(windField) { this._windField = windField; this._slot = null; this._draw() },
   setState({ visible, levelIndex, tMs }) {
     const slot = Math.floor(tMs / HALF_HOUR)
     const changed = visible !== this._state.visible || levelIndex !== this._state.levelIndex || slot !== this._slot

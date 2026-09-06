@@ -13,10 +13,20 @@ const { domain, levels } = simConfig
 const lats = Array.from({ length: domain.latMax - domain.latMin + 1 }, (_, k) => domain.latMin + k)
 const lons = Array.from({ length: domain.lonMax - domain.lonMin + 1 }, (_, k) => domain.lonMin + k)
 
-const points = JSON.parse(readFileSync(resolve(ROOT, 'data/raw/wind/open-meteo-grid-1deg-2026-09-04_07.json'), 'utf8'))
-const wind = buildWindDataset(points, { lats, lons, levels })
-writeFileSync(resolve(OUT, 'wind.json'), JSON.stringify(wind))
-console.log(`wind.json: ${wind.times.length} h x ${levels.length} lv x ${lats.length}x${lons.length}`)
+// model angin: 'best' (Open-Meteo best match) + ECMWF IFS 0.25°, GFS, ICON
+const WIND_MODELS = [
+  { key: 'best', file: 'open-meteo-grid-1deg-2026-09-04_07.json', out: 'wind.json' },
+  { key: 'ecmwf', file: 'open-meteo-grid-1deg-ecmwf_ifs025-2026-09-04_07.json', out: 'wind-ecmwf.json' },
+  { key: 'gfs', file: 'open-meteo-grid-1deg-gfs_seamless-2026-09-04_07.json', out: 'wind-gfs.json' },
+  { key: 'icon', file: 'open-meteo-grid-1deg-icon_seamless-2026-09-04_07.json', out: 'wind-icon.json' },
+]
+for (const m of WIND_MODELS) {
+  const points = JSON.parse(readFileSync(resolve(ROOT, `data/raw/wind/${m.file}`), 'utf8'))
+  const wind = buildWindDataset(points, { lats, lons, levels })
+  wind.model = m.key
+  writeFileSync(resolve(OUT, m.out), JSON.stringify(wind))
+  console.log(`${m.out}: ${wind.times.length} h x ${levels.length} lv x ${lats.length}x${lons.length}`)
+}
 
 const vaac = parseVaacText(readFileSync(resolve(ROOT, 'data/raw/vaac/vaac-darwin-krakatau-2026-09.txt'), 'utf8'))
 writeFileSync(resolve(OUT, 'vaac.json'), JSON.stringify(vaac, null, 1))
