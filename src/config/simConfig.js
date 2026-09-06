@@ -22,8 +22,9 @@ export const simConfig = {
     { name: 'medium', fraction: 0.35, settleMps: 0.1, depositWeight: 0.5 },
     { name: 'coarse', fraction: 0.15, settleMps: 0.5, depositWeight: 1.0 },
   ],
-  diffusion: { horizontalM2s: 2000, verticalSigmaMPerStep: 100 },
-  vaacNudge: 0.3,
+  // hasil kalibrasi v1 (docs/calibration.md): K_h 6000, nudge 0.7
+  diffusion: { horizontalM2s: 6000, verticalSigmaMPerStep: 100 },
+  vaacNudge: 0.7,
   lowLayerTopKm: 6.1,
   deposition: { cellDeg: 0.1 },
   levels: [
