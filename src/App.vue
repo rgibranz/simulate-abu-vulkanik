@@ -30,29 +30,29 @@ function reload() { window.location.reload() }
   <div class="app">
     <header class="header">
       <div class="title">
-        <h1>Anak Krakatau ash dispersion <span class="dates">4–6 September 2026</span></h1>
-        <p>Ash particles carried by Open-Meteo winds, replayed against Darwin VAAC advisories.</p>
+        <h1>Sebaran abu Anak Krakatau <span class="dates">4–6 September 2026</span></h1>
+        <p>Partikel abu dibawa angin model Open-Meteo, diputar ulang dan dibandingkan dengan advisory VAAC Darwin.</p>
       </div>
-      <button class="about" @click="aboutOpen = true">About</button>
+      <button class="about" @click="aboutOpen = true">Tentang</button>
     </header>
 
     <div v-if="datasets.status.value !== 'ready'" class="overlay">
       <template v-if="datasets.status.value === 'error'">
-        <p class="err">Couldn't load the simulation data: {{ datasets.error.value }}</p>
-        <button class="primary" @click="datasets.load()">Try again</button>
+        <p class="err">Data simulasi gagal dimuat: {{ datasets.error.value }}</p>
+        <button class="primary" @click="datasets.load()">Coba lagi</button>
       </template>
-      <p v-else>Loading wind and advisory data…</p>
+      <p v-else>Memuat data angin dan advisory…</p>
     </div>
 
     <template v-else>
       <MapView :datasets="datasets.data.value" :simulation="simulation" :layers="layers" />
       <EventCard :events="datasets.data.value.events.events" :current-time-ms="simulation.currentTimeMs.value" />
       <aside class="side" :class="{ collapsed: sideCollapsed }">
-        <button class="collapse" :aria-label="sideCollapsed ? 'Show layers' : 'Hide layers'" @click="sideCollapsed = !sideCollapsed">{{ sideCollapsed ? 'Layers' : '✕' }}</button>
+        <button class="collapse" :aria-label="sideCollapsed ? 'Tampilkan lapisan' : 'Sembunyikan lapisan'" @click="sideCollapsed = !sideCollapsed">{{ sideCollapsed ? 'Lapisan' : '✕' }}</button>
         <div v-show="!sideCollapsed"><LayerPanel :layers="layers" /><Legend /></div>
       </aside>
       <div v-if="simulation.status.value === 'error'" class="banner">
-        The simulation stopped: {{ simulation.error.value }} <button class="primary" @click="reload">Reload</button>
+        Simulasi berhenti: {{ simulation.error.value }} <button class="primary" @click="reload">Muat ulang</button>
       </div>
       <TimelineBar :simulation="simulation" :start-ms="startMs" :end-ms="endMs" :events="datasets.data.value.events.events" />
     </template>

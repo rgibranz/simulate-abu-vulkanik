@@ -32,21 +32,21 @@ function toggle() { props.simulation.playing.value ? props.simulation.pause() : 
 
 <template>
   <div class="timeline">
-    <button class="play" :disabled="simulation.status.value !== 'ready'" :aria-label="simulation.playing.value ? 'Pause' : 'Play'" @click="toggle">
+    <button class="play" :disabled="simulation.status.value !== 'ready'" :aria-label="simulation.playing.value ? 'Jeda' : 'Putar'" @click="toggle">
       {{ simulation.playing.value ? '❚❚' : '▶' }}
     </button>
-    <div class="speeds" role="group" aria-label="Playback speed">
+    <div class="speeds" role="group" aria-label="Kecepatan putar">
       <button v-for="s in SPEEDS" :key="s" :class="{ active: simulation.speed.value === s }" @click="simulation.setSpeed(s)">{{ s }}×</button>
     </div>
     <div class="track">
       <div class="ticks">
         <button v-for="e in ticks" :key="e.id" class="tick" :class="e.kind" :style="{ left: e.pct + '%' }" :title="`${formatWibShort(e.tMs)} — ${e.title}`" @click="simulation.seek(e.tMs)">{{ e.icon }}</button>
       </div>
-      <input type="range" min="0" :max="maxStep" step="1" :value="sliderValue" aria-label="Simulation time" @input="onInput" />
+      <input type="range" min="0" :max="maxStep" step="1" :value="sliderValue" aria-label="Waktu simulasi" @input="onInput" />
     </div>
     <div class="clock">
       <div class="wib">{{ formatWib(simulation.currentTimeMs.value) }}</div>
-      <div class="utc">{{ formatUtc(simulation.currentTimeMs.value) }}, {{ simulation.aliveCount.value.toLocaleString() }} particles aloft<span v-if="simulation.seeking.value">, seeking…</span></div>
+      <div class="utc">{{ formatUtc(simulation.currentTimeMs.value) }}, {{ simulation.aliveCount.value.toLocaleString('id-ID') }} partikel di udara<span v-if="simulation.seeking.value">, memuat…</span></div>
     </div>
   </div>
 </template>

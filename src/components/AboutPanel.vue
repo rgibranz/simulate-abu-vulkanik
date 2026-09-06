@@ -6,23 +6,23 @@ const emit = defineEmits(['close'])
 <template>
   <div v-if="open" class="backdrop" @click.self="emit('close')">
     <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="about-title">
-      <button class="close" aria-label="Close" @click="emit('close')">✕</button>
-      <h2 id="about-title">About this simulation</h2>
-      <p>A simplified replay of the Anak Krakatau eruption of 4–6 September 2026. Ash is modelled as particles released from the crater at the plume height reported by Darwin VAAC, carried by model winds at seven altitude levels, spread by random diffusion, nudged toward the official VAAC movement vector, and settled by gravity in three size classes.</p>
-      <h3>What it can't tell you</h3>
+      <button class="close" aria-label="Tutup" @click="emit('close')">✕</button>
+      <h2 id="about-title">Tentang simulasi ini</h2>
+      <p>Pemutaran ulang yang disederhanakan dari erupsi Anak Krakatau 4–6 September 2026. Abu dimodelkan sebagai partikel yang dilepaskan dari kawah setinggi kolom yang dilaporkan VAAC Darwin, dibawa angin model di tujuh level ketinggian, disebar oleh difusi acak, didorong mendekati vektor gerak resmi VAAC, dan diendapkan gravitasi dalam tiga kelas ukuran.</p>
+      <h3>Yang tidak bisa dijawab simulasi ini</h3>
       <ul>
-        <li>Winds are model data from the Open-Meteo forecast archive, not observations.</li>
-        <li>Particle counts are illustrative. They do not represent ash mass or concentration.</li>
-        <li>VAAC advisories 163–182 are only partly available, so the sim interpolates between the ones we have.</li>
-        <li>No ground measurements of ash thickness were available. Ashfall is shown relative to its own maximum.</li>
-        <li>Plume height is held constant between reported values.</li>
+        <li>Angin adalah data model dari arsip prakiraan Open-Meteo, bukan pengamatan.</li>
+        <li>Jumlah partikel hanya ilustrasi. Bukan massa atau konsentrasi abu.</li>
+        <li>Advisory VAAC 163–182 hanya sebagian tersedia, jadi simulasi menginterpolasi di antara yang ada.</li>
+        <li>Tidak ada pengukuran ketebalan abu di darat. Endapan ditampilkan relatif terhadap nilai maksimumnya.</li>
+        <li>Tinggi kolom dianggap tetap di antara nilai yang dilaporkan.</li>
       </ul>
-      <h3>Where the data comes from</h3>
+      <h3>Sumber data</h3>
       <ul>
-        <li>Darwin VAAC volcanic ash advisories, via VolcanoDiscovery and bom.gov.au</li>
-        <li>Open-Meteo wind at 10 m and at 850, 700, 500, 300, 200 and 100 hPa</li>
-        <li>PVMBG and MAGMA Indonesia, BMKG statements, and Indonesian news reports for the event timeline</li>
-        <li>Province boundaries from superpikar/indonesia-geojson (BAKOSURTANAL 1:250k)</li>
+        <li>Advisory abu vulkanik VAAC Darwin, lewat VolcanoDiscovery dan bom.gov.au</li>
+        <li>Angin Open-Meteo di 10 m serta 850, 700, 500, 300, 200, dan 100 hPa</li>
+        <li>PVMBG dan MAGMA Indonesia, pernyataan BMKG, serta pemberitaan media untuk kronologi kejadian</li>
+        <li>Batas provinsi dari superpikar/indonesia-geojson (BAKOSURTANAL 1:250k)</li>
       </ul>
     </div>
   </div>

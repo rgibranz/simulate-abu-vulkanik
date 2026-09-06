@@ -13,7 +13,7 @@ const current = computed(() => latestEventAt(props.events, props.currentTimeMs))
       <time class="when">{{ formatWib(Date.parse(current.timeUtc)) }}</time>
       <h3>{{ current.title }}</h3>
       <p>{{ current.description }}</p>
-      <a :href="current.sourceUrl" target="_blank" rel="noopener">Read the source</a>
+      <a :href="current.sourceUrl" target="_blank" rel="noopener">Baca sumbernya</a>
     </article>
   </transition>
 </template>

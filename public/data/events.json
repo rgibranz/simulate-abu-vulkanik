@@ -4,48 +4,48 @@
    "id": "eruption-start",
    "timeUtc": "2026-09-04T16:07:00Z",
    "kind": "eruption",
-   "title": "Major eruption begins",
-   "description": "Continuous lava fountaining starts at 23:07 WIB. Eruption tremor lasts six hours (amplitude 70 mm), the strongest activity of 2026.",
+   "title": "Erupsi besar dimulai",
+   "description": "Semburan lava menerus dimulai pukul 23.07 WIB. Gempa letusan berlangsung enam jam (amplitudo 70 mm), aktivitas terkuat sepanjang 2026.",
    "sourceUrl": "https://service.bridgenote.asia/news/anak-krakatau-eruption-september-2026-jakarta-airport"
   },
   {
    "id": "vaac-164",
    "timeUtc": "2026-09-04T16:30:00Z",
    "kind": "advisory",
-   "title": "VAAC: ash to FL450 (13.7 km)",
-   "description": "Darwin VAAC advisory 2026/164 reports a high-level eruption. Ten minutes later ash reaches FL480, moving west at 93 km/h.",
+   "title": "VAAC: abu mencapai FL450 (13,7 km)",
+   "description": "Advisory VAAC Darwin 2026/164 melaporkan erupsi tingkat tinggi. Sepuluh menit kemudian abu mencapai FL480, bergerak ke barat 93 km/jam.",
    "sourceUrl": "https://watchers.news/2026/09/04/high-level-eruption-at-anak-krakatau-ejects-ash-over-15-km-50-000-feet-a-s-l-indonesia/"
   },
   {
    "id": "plume-15km",
    "timeUtc": "2026-09-04T17:50:00Z",
    "kind": "eruption",
-   "title": "Plume reaches ~15 km",
-   "description": "JMA and Darwin VAAC estimate the ash column at 15 km (50,000 ft). A lower layer to about 5.5 km drifts south.",
+   "title": "Kolom abu mencapai ±15 km",
+   "description": "JMA dan VAAC Darwin memperkirakan kolom abu setinggi 15 km (50.000 kaki). Lapisan bawah setinggi ±5,5 km hanyut ke selatan.",
    "sourceUrl": "https://watchers.news/2026/09/04/high-level-eruption-at-anak-krakatau-ejects-ash-over-15-km-50-000-feet-a-s-l-indonesia/"
   },
   {
    "id": "vaac-171",
    "timeUtc": "2026-09-05T00:10:00Z",
    "kind": "advisory",
-   "title": "Two ash layers",
-   "description": "VAAC 2026/171: ash to FL500 moving west at 40 kt; a separate layer to FL200 moving south to east-southeast at 10 kt.",
+   "title": "Dua lapisan abu",
+   "description": "VAAC 2026/171: abu hingga FL500 bergerak ke barat 40 knot; lapisan terpisah hingga FL200 bergerak ke selatan sampai timur-tenggara 10 knot.",
    "sourceUrl": "https://www.volcanodiscovery.com/krakatau/news/341700/vaac-advisory-2026-171.html"
   },
   {
    "id": "vona-red",
    "timeUtc": "2026-09-05T02:00:00Z",
    "kind": "advisory",
-   "title": "VONA RED issued",
-   "description": "PVMBG raises the aviation colour code to RED (MAGMA notice 22575).",
+   "title": "VONA RED diterbitkan",
+   "description": "PVMBG menaikkan kode warna penerbangan ke RED (notice MAGMA 22575).",
    "sourceUrl": "https://magma.esdm.go.id/v1/vona?code=KRA"
   },
   {
    "id": "ashfall-lampung",
    "timeUtc": "2026-09-05T09:00:00Z",
    "kind": "ashfall",
-   "title": "Ashfall in Lampung",
-   "description": "From Saturday afternoon into the night, residents of Bandar Lampung, Lampung Selatan, Pesawaran, Pringsewu, Tanggamus and Pesisir Barat find ash on vehicles and terraces.",
+   "title": "Hujan abu di Lampung",
+   "description": "Sejak Sabtu sore hingga malam, warga Bandar Lampung, Lampung Selatan, Pesawaran, Pringsewu, Tanggamus, dan Pesisir Barat mendapati abu di kendaraan dan teras rumah.",
    "location": {
     "name": "Bandar Lampung",
     "lat": -5.43,
@@ -57,8 +57,8 @@
    "id": "ashfall-serang",
    "timeUtc": "2026-09-05T10:00:00Z",
    "kind": "ashfall",
-   "title": "Ashfall on the Serang coast",
-   "description": "From 17:00 WIB dust settles in Kampung Pasauran, Cinangka. Motorcyclists report stinging eyes; a school reports disrupted attendance.",
+   "title": "Hujan abu di pesisir Serang",
+   "description": "Sejak pukul 17.00 WIB debu mengendap di Kampung Pasauran, Cinangka. Pengendara motor mengeluh mata perih; sebuah sekolah melaporkan kehadiran murid terganggu.",
    "location": {
     "name": "Cinangka, Serang",
     "lat": -6.24,
@@ -70,16 +70,16 @@
    "id": "vaac-179",
    "timeUtc": "2026-09-05T16:10:00Z",
    "kind": "advisory",
-   "title": "VAAC cloud reaches Jakarta",
-   "description": "Advisory 2026/179: the low-level (FL200) ash cloud now extends over Jakarta and West Java, moving SE at 10 kt. The FL500 cloud keeps moving west at 30 kt.",
+   "title": "Awan abu VAAC mencapai Jakarta",
+   "description": "Advisory 2026/179: awan abu lapisan rendah (FL200) kini membentang sampai Jakarta dan Jawa Barat, bergerak ke tenggara 10 knot. Awan FL500 terus bergerak ke barat 30 knot.",
    "sourceUrl": "https://www.volcanodiscovery.com/krakatau/news/342083/vaac-advisory-2026-179.html"
   },
   {
    "id": "cgk-closed",
    "timeUtc": "2026-09-05T18:30:00Z",
    "kind": "aviation",
-   "title": "Soekarno-Hatta closed",
-   "description": "NOTAM A3341/26 closes CGK from 01:30 WIB. The closure is extended to 05:30, 09:30 and finally 13:30 WIB; 209 movements and about 22,800 passengers affected.",
+   "title": "Bandara Soekarno-Hatta ditutup",
+   "description": "NOTAM A3341/26 menutup CGK mulai 01.30 WIB. Penutupan diperpanjang ke 05.30, 09.30, dan akhirnya 13.30 WIB; 209 pergerakan pesawat dan sekitar 22.800 penumpang terdampak.",
    "location": {
     "name": "Soekarno-Hatta (CGK)",
     "lat": -6.125,
@@ -91,26 +91,26 @@
    "id": "eruption-0353",
    "timeUtc": "2026-09-05T20:53:00Z",
    "kind": "eruption",
-   "title": "Further eruption at 03:53 WIB",
-   "description": "Discrete eruption recorded with maximum amplitude 46 mm, duration 30 s.",
+   "title": "Erupsi lanjutan pukul 03.53 WIB",
+   "description": "Erupsi tercatat dengan amplitudo maksimum 46 mm, durasi 30 detik.",
    "sourceUrl": "https://service.bridgenote.asia/news/anak-krakatau-eruption-september-2026-jakarta-airport"
   },
   {
    "id": "bmkg-clusters",
    "timeUtc": "2026-09-05T21:00:00Z",
    "kind": "report",
-   "title": "BMKG: two ash clusters",
-   "description": "Himawari-9 analysis at 04:00 WIB: cluster 1 (surface to 20,000 ft) over parts of Jakarta, Bogor, Depok, Banten and West Java; cluster 2 (to 50,000 ft) toward Lampung, Bengkulu and the Indian Ocean.",
+   "title": "BMKG: dua klaster sebaran abu",
+   "description": "Analisis Himawari-9 pukul 04.00 WIB: klaster 1 (permukaan hingga 20.000 kaki) di sebagian Jakarta, Bogor, Depok, Banten, dan Jawa Barat; klaster 2 (hingga 50.000 kaki) ke arah Lampung, Bengkulu, dan Samudra Hindia.",
    "sourceUrl": "https://news.detik.com/berita/d-8650368/bmkg-ungkap-2-klaster-sebaran-abu-anak-krakatau-arah-lampung-dan-jakarta"
   },
   {
    "id": "ashfall-jakarta",
    "timeUtc": "2026-09-05T22:30:00Z",
    "kind": "ashfall",
-   "title": "Ash noticed in Jakarta",
-   "description": "At dawn, residents in South Jakarta and Cilangkap (East Jakarta) find dust on floors, terraces and freshly washed vehicles, and report the air feels heavier.",
+   "title": "Abu terasa di Jakarta",
+   "description": "Menjelang subuh, warga Jakarta Selatan dan Cilangkap (Jakarta Timur) mendapati debu di lantai, teras, dan kendaraan yang baru dicuci, serta merasa udara lebih sesak.",
    "location": {
-    "name": "Cilangkap, East Jakarta",
+    "name": "Cilangkap, Jakarta Timur",
     "lat": -6.34,
     "lon": 106.9
    },
@@ -120,8 +120,8 @@
    "id": "tkg-closed",
    "timeUtc": "2026-09-06T00:00:00Z",
    "kind": "aviation",
-   "title": "Lampung airport closed",
-   "description": "Radin Inten II suspends operations from 07:00 to 10:00 WIB.",
+   "title": "Bandara Lampung ditutup",
+   "description": "Radin Inten II menghentikan operasi dari pukul 07.00 sampai 10.00 WIB.",
    "location": {
     "name": "Radin Inten II (TKG)",
     "lat": -5.24,
@@ -133,16 +133,16 @@
    "id": "eruption-0710",
    "timeUtc": "2026-09-06T00:10:00Z",
    "kind": "eruption",
-   "title": "Eruption at 07:10 WIB",
-   "description": "Maximum amplitude 50 mm, duration 16 s. Column height not observed.",
+   "title": "Erupsi pukul 07.10 WIB",
+   "description": "Amplitudo maksimum 50 mm, durasi 16 detik. Tinggi kolom tidak teramati.",
    "sourceUrl": "https://service.bridgenote.asia/news/anak-krakatau-eruption-september-2026-jakarta-airport"
   },
   {
    "id": "hlp-closed",
    "timeUtc": "2026-09-06T00:20:00Z",
    "kind": "aviation",
-   "title": "Halim Perdanakusuma closed",
-   "description": "HLP closes at 07:20 WIB (NOTAM A3345/26), estimated reopening 10:00 WIB.",
+   "title": "Bandara Halim Perdanakusuma ditutup",
+   "description": "HLP ditutup pukul 07.20 WIB (NOTAM A3345/26), diperkirakan dibuka kembali pukul 10.00 WIB.",
    "location": {
     "name": "Halim Perdanakusuma (HLP)",
     "lat": -6.267,
@@ -154,8 +154,8 @@
    "id": "vaac-184",
    "timeUtc": "2026-09-06T03:10:00Z",
    "kind": "advisory",
-   "title": "VAAC: high-level cloud detaches",
-   "description": "Advisory 2026/184: the FL500 cloud is detached from the volcano and moving SW. Continuous emission to FL200 now moves west, while remnants of earlier ash still drift east.",
+   "title": "VAAC: awan tinggi lepas dari gunung",
+   "description": "Advisory 2026/184: awan FL500 sudah terlepas dari gunung dan bergerak ke barat daya. Emisi menerus hingga FL200 kini bergerak ke barat, sementara sisa abu sebelumnya masih hanyut ke timur.",
    "sourceUrl": "https://www.bom.gov.au/aviation/volcanic-ash/darwin-va-advisory.shtml"
   }
  ]
