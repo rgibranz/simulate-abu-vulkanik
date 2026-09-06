@@ -17,6 +17,9 @@ const props = defineProps({
   simulation: { type: Object, required: true },
   layers: { type: Object, required: true },
   windField: { type: Object, required: true },
+  view: { type: Object, default: null }, // { center, zoom } — dipakai mode video
+  showCaption: { type: Boolean, default: true },
+  zoomControl: { type: Boolean, default: true },
 })
 
 const container = ref(null)
@@ -137,8 +140,8 @@ function onMapClick(ev) {
 }
 
 onMounted(() => {
-  map = L.map(container.value, { center: [-6.3, 106.2], zoom: 7, zoomControl: false, attributionControl: true })
-  L.control.zoom({ position: 'bottomright' }).addTo(map) // kiri-atas dipakai judul
+  map = L.map(container.value, { center: props.view?.center ?? [-6.3, 106.2], zoom: props.view?.zoom ?? 7, zoomControl: false, attributionControl: true })
+  if (props.zoomControl) L.control.zoom({ position: 'bottomright' }).addTo(map) // kiri-atas dipakai judul
   // CARTO sekarang minta API key; Esri Dark Gray Canvas gratis dengan atribusi
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
     attribution: 'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, DeLorme, NAVTEQ',
@@ -189,7 +192,7 @@ defineExpose({ getMap: () => map, getParticleLayer: () => particleLayer, getDepo
 
 <template>
   <div ref="container" class="map"></div>
-  <div v-if="layers.satellite && satelliteCaption" class="sat-caption">{{ satelliteCaption }}</div>
+  <div v-if="showCaption && layers.satellite && satelliteCaption" class="sat-caption">{{ satelliteCaption }}</div>
 </template>
 
 <style scoped>

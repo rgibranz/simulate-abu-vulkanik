@@ -1,9 +1,10 @@
 <script setup>
-import { computed, onMounted, ref, shallowRef, watch } from 'vue'
+import { computed, onMounted, reactive, ref, shallowRef, watch } from 'vue'
 import { createWindField } from './engine/windField.js'
 import { useDatasets } from './composables/useDatasets.js'
 import { useSimulation } from './composables/useSimulation.js'
 import { useLayers } from './composables/useLayers.js'
+import { useVideoMode } from './composables/useVideoMode.js'
 import { simConfig } from './config/simConfig.js'
 import MapView from './components/MapView.vue'
 import TimelineBar from './components/TimelineBar.vue'
@@ -13,11 +14,17 @@ import Legend from './components/Legend.vue'
 import AboutPanel from './components/AboutPanel.vue'
 import AirQualityChart from './components/AirQualityChart.vue'
 import WindProfile from './components/WindProfile.vue'
+import VideoFrame from './components/VideoFrame.vue'
 
 const INITIAL_UTC = '2026-09-04T16:00:00Z' // sesaat sebelum erupsi besar (spec §6)
+const SITE_URL = 'rgibranz.github.io/simulate-abu-vulkanik'
 const datasets = useDatasets()
 const simulation = useSimulation()
 const layers = useLayers()
+const video = useVideoMode()
+const videoPhase = ref('main')
+// layer tetap untuk render video: satelit nyala, panel/grafik mati
+const videoLayers = reactive({ lowAsh: true, highAsh: true, ashfall: true, vaac: true, vaacForecast: false, wind: false, windLevel: 2, windModel: 'best', provinces: true, places: true, pm10: false, satellite: true })
 const startMs = Date.parse(simConfig.startUtc), endMs = Date.parse(simConfig.endUtc)
 const sideCollapsed = ref(window.innerWidth < 768)
 const aboutOpen = ref(false)
@@ -28,7 +35,10 @@ let resumeMs = null // waktu yang dikembalikan setelah worker di-init ulang
 // medan angin di main thread (buat panah, profil kawah, popup klik); worker punya salinannya sendiri
 const windField = computed(() => (windData.value ? createWindField(windData.value) : null))
 
-onMounted(() => datasets.load())
+onMounted(() => {
+  datasets.load()
+  if (video.enabled) installVideoHook()
+})
 watch(() => datasets.status.value, (s) => {
   if (s !== 'ready') return
   windData.value = datasets.data.value.wind
@@ -50,50 +60,76 @@ watch(() => layers.windModel, async (model) => {
   } catch (e) { windError.value = e.message }
 })
 
+// kait buat scripts/render-video.mjs: seek deterministik + ganti fase kartu
+function installVideoHook() {
+  window.__sim = {
+    get ready() { return simulation.status.value === 'ready' },
+    get currentTimeMs() { return simulation.currentTimeMs.value },
+    setPhase(p) { videoPhase.value = p },
+    seek(tMs) {
+      return new Promise((resolve) => {
+        const off = simulation.onFrame((f) => { if (f.tMs >= tMs - 1) { off(); resolve(f.tMs) } })
+        simulation.seek(tMs)
+      })
+    },
+  }
+}
+
 function reload() { window.location.reload() }
 </script>
 
 <template>
-  <div class="app">
-    <header class="header">
-      <div class="title">
-        <h1>Sebaran abu Anak Krakatau <span class="dates">4–6 September 2026</span></h1>
-        <p>Partikel abu dibawa angin model Open-Meteo, diputar ulang dan dibandingkan dengan advisory VAAC Darwin.</p>
-      </div>
-      <button class="about" @click="aboutOpen = true">Tentang</button>
-    </header>
-
-    <div v-if="datasets.status.value !== 'ready'" class="overlay">
-      <template v-if="datasets.status.value === 'error'">
-        <p class="err">Data simulasi gagal dimuat: {{ datasets.error.value }}</p>
-        <button class="primary" @click="datasets.load()">Coba lagi</button>
+  <div class="app" :class="{ 'video-mode': video.enabled }">
+    <!-- mode render video: peta + overlay VideoFrame saja -->
+    <template v-if="video.enabled">
+      <div v-if="datasets.status.value !== 'ready'" class="overlay"><p>Memuat…</p></div>
+      <template v-else>
+        <MapView v-if="windField" :datasets="datasets.data.value" :simulation="simulation" :layers="videoLayers" :wind-field="windField" :view="video.view" :show-caption="false" :zoom-control="false" />
+        <VideoFrame :orientation="video.orientation" :phase="videoPhase" :current-time-ms="simulation.currentTimeMs.value" :start-ms="startMs" :end-ms="endMs" :events="datasets.data.value.events.events" :himawari="datasets.data.value.himawari" :site-url="SITE_URL" />
       </template>
-      <p v-else>Memuat data angin dan advisory…</p>
-    </div>
-
-    <template v-else>
-      <MapView v-if="windField" :datasets="datasets.data.value" :simulation="simulation" :layers="layers" :wind-field="windField" />
-      <EventCard :events="datasets.data.value.events.events" :current-time-ms="simulation.currentTimeMs.value" />
-      <AirQualityChart v-if="layers.pm10" :air-quality="datasets.data.value.airQuality" :current-time-ms="simulation.currentTimeMs.value" :start-ms="startMs" :end-ms="endMs" />
-      <aside class="side" :class="{ collapsed: sideCollapsed }">
-        <button class="collapse" :aria-label="sideCollapsed ? 'Tampilkan lapisan' : 'Sembunyikan lapisan'" @click="sideCollapsed = !sideCollapsed">{{ sideCollapsed ? 'Lapisan' : '✕' }}</button>
-        <div v-show="!sideCollapsed">
-          <LayerPanel :layers="layers" />
-          <Legend />
-          <WindProfile v-if="windField" :wind-field="windField" :current-time-ms="simulation.currentTimeMs.value" :vent="simConfig.vent" />
-        </div>
-      </aside>
-      <div v-if="simulation.status.value === 'error'" class="banner">
-        Simulasi berhenti: {{ simulation.error.value }} <button class="primary" @click="reload">Muat ulang</button>
-      </div>
-      <div v-else-if="windError" class="banner">
-        Model angin gagal dimuat: {{ windError }}
-      </div>
-      <div v-else-if="simulation.status.value === 'loading'" class="banner soft">Menghitung ulang dengan model angin baru…</div>
-      <TimelineBar :simulation="simulation" :start-ms="startMs" :end-ms="endMs" :events="datasets.data.value.events.events" :eruption-series="datasets.data.value.eruptionSource.series" />
     </template>
 
-    <AboutPanel :open="aboutOpen" @close="aboutOpen = false" />
+    <template v-else>
+      <header class="header">
+        <div class="title">
+          <h1>Sebaran abu Anak Krakatau <span class="dates">4–6 September 2026</span></h1>
+          <p>Partikel abu dibawa angin model Open-Meteo, diputar ulang dan dibandingkan dengan advisory VAAC Darwin.</p>
+        </div>
+        <button class="about" @click="aboutOpen = true">Tentang</button>
+      </header>
+
+      <div v-if="datasets.status.value !== 'ready'" class="overlay">
+        <template v-if="datasets.status.value === 'error'">
+          <p class="err">Data simulasi gagal dimuat: {{ datasets.error.value }}</p>
+          <button class="primary" @click="datasets.load()">Coba lagi</button>
+        </template>
+        <p v-else>Memuat data angin dan advisory…</p>
+      </div>
+
+      <template v-else>
+        <MapView v-if="windField" :datasets="datasets.data.value" :simulation="simulation" :layers="layers" :wind-field="windField" />
+        <EventCard :events="datasets.data.value.events.events" :current-time-ms="simulation.currentTimeMs.value" />
+        <AirQualityChart v-if="layers.pm10" :air-quality="datasets.data.value.airQuality" :current-time-ms="simulation.currentTimeMs.value" :start-ms="startMs" :end-ms="endMs" />
+        <aside class="side" :class="{ collapsed: sideCollapsed }">
+          <button class="collapse" :aria-label="sideCollapsed ? 'Tampilkan lapisan' : 'Sembunyikan lapisan'" @click="sideCollapsed = !sideCollapsed">{{ sideCollapsed ? 'Lapisan' : '✕' }}</button>
+          <div v-show="!sideCollapsed">
+            <LayerPanel :layers="layers" />
+            <Legend />
+            <WindProfile v-if="windField" :wind-field="windField" :current-time-ms="simulation.currentTimeMs.value" :vent="simConfig.vent" />
+          </div>
+        </aside>
+        <div v-if="simulation.status.value === 'error'" class="banner">
+          Simulasi berhenti: {{ simulation.error.value }} <button class="primary" @click="reload">Muat ulang</button>
+        </div>
+        <div v-else-if="windError" class="banner">
+          Model angin gagal dimuat: {{ windError }}
+        </div>
+        <div v-else-if="simulation.status.value === 'loading'" class="banner soft">Menghitung ulang dengan model angin baru…</div>
+        <TimelineBar :simulation="simulation" :start-ms="startMs" :end-ms="endMs" :events="datasets.data.value.events.events" :eruption-series="datasets.data.value.eruptionSource.series" />
+      </template>
+
+      <AboutPanel :open="aboutOpen" @close="aboutOpen = false" />
+    </template>
   </div>
 </template>
 
@@ -115,6 +151,9 @@ body { margin: 0; font-family: var(--font); }
 button, select, input { font-family: inherit; }
 button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+/* mode video: atribusi tetap ada tapi kecil, tanpa kontrol */
+.video-mode .leaflet-bottom { bottom: 0; }
+.video-mode .leaflet-control-attribution { font-size: 14px; }
 </style>
 
 <style scoped>

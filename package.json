@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "calibrate": "node scripts/calibrate.mjs"
+    "calibrate": "node scripts/calibrate.mjs",
+    "render:video": "node scripts/render-video.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
@@ -24,6 +25,7 @@
     "jpeg-js": "^0.4.4",
     "jsdom": "^25.0.0",
     "pngjs": "^7.0.0",
+    "puppeteer-core": "^25.10.0",
     "vite": "^6.0.0",
     "vitest": "^3.0.0"
   }
