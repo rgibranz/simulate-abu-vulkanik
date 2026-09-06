@@ -21,6 +21,8 @@ const PRESETS = {
   'ciangsana-square': { orientation: 'square', variant: 'ciangsana', start: '2026-09-05T05:00:00Z', end: '2026-09-06T12:00:00Z', hoursPerSec: 1.5 },
   'teaser-portrait': { orientation: 'portrait', variant: 'teaser', start: '2026-09-05T12:00:00Z', end: '2026-09-06T03:00:00Z', hoursPerSec: 1.5, intro: 1.5, outro: 1.5 },
   'split-landscape': { orientation: 'landscape', variant: 'split' },
+  'split-landscape-60s': { orientation: 'landscape', variant: 'split', hoursPerSec: 1 },
+  'split-portrait-60s': { orientation: 'portrait', variant: 'split', hoursPerSec: 1 },
   'wind-portrait': { orientation: 'portrait', variant: 'wind', scenes: true, intro: 1.5, outro: 1.5 }, // jendela waktu per adegan dari app (window.__sim.scenes)
 }
 

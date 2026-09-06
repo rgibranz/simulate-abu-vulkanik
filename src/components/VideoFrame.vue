@@ -147,6 +147,15 @@ h1 { margin: 0; font-size: 88px; font-weight: 600; line-height: 1.05; letter-spa
 .pane-label.left { left: 24px; } .pane-label.right { left: calc(50% + 24px); }
 .divider { position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; background: rgba(239, 233, 223, 0.35); }
 
+/* split portrait: panel bertumpuk → label kiri-atas tiap panel, pemisah horizontal, strip ringkas */
+.portrait.split .pane-label.left { top: 96px; left: 24px; }
+.portrait.split .pane-label.right { top: calc(50% + 24px); left: 24px; }
+.portrait.split .divider { top: 50%; left: 0; right: 0; width: auto; height: 3px; }
+.portrait.split .strip { padding: 24px 40px 40px; }
+.portrait.split .wib { font-size: 44px; } .portrait.split .since { font-size: 22px; }
+.portrait.split .event { margin-top: 14px; } .portrait.split .title { font-size: 32px; } .portrait.split .desc { display: none; } .portrait.split .kind { font-size: 20px; }
+.portrait.split .legend { margin-top: 16px; font-size: 21px; gap: 6px 20px; }
+
 /* landscape: strip lebih ramping di kiri bawah */
 .landscape .strip { right: auto; width: 720px; padding: 28px 32px 44px; background: linear-gradient(90deg, rgba(27, 26, 25, 0.92), rgba(27, 26, 25, 0.75)); border-top-right-radius: 12px; }
 .landscape .wib { font-size: 40px; } .landscape .since { font-size: 20px; } .landscape .focus { font-size: 22px; }

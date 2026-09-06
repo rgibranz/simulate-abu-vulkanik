@@ -16,7 +16,10 @@ const VIEWS = {
     landscape: { center: [-6.3, 106.4], zoom: 9 },
     square: { center: [-6.35, 106.2], zoom: 9 },
   },
-  split: { landscape: { center: [-6.3, 106.4], zoom: 8 } },
+  split: {
+    landscape: { center: [-6.3, 106.4], zoom: 8 }, // dua panel berdampingan, 960 px tiap panel
+    portrait: { center: [-6.4, 106.3], zoom: 8 }, // dua panel bertumpuk, 1080×960 tiap panel
+  },
 }
 
 // varian "wind": adegan terprogram — tiap adegan punya jendela waktu, level panah angin, dan layer sendiri

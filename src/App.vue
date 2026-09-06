@@ -115,7 +115,7 @@ function reload() { window.location.reload() }
     <template v-if="video.enabled">
       <div v-if="datasets.status.value !== 'ready'" class="overlay"><p>Memuat…</p></div>
       <template v-else-if="windField">
-        <div v-if="video.variant === 'split'" class="split">
+        <div v-if="video.variant === 'split'" class="split" :class="video.orientation">
           <div class="pane"><MapView :datasets="datasets.data.value" :simulation="simulation" :layers="satelliteOnlyLayers" :wind-field="windField" :view="video.view" :show-caption="false" :zoom-control="false" /></div>
           <div class="pane"><MapView :datasets="datasets.data.value" :simulation="simulation" :layers="simOnlyLayers" :wind-field="windField" :view="video.view" :show-caption="false" :zoom-control="false" /></div>
         </div>
@@ -194,6 +194,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible
 <style scoped>
 .app { position: fixed; inset: 0; color: var(--bone); background: var(--ink); font-family: var(--font); }
 .split { position: absolute; inset: 0; display: flex; }
+.split.portrait, .split.square { flex-direction: column; } /* bertumpuk: satelit atas, simulasi bawah */
 .pane { position: relative; flex: 1; overflow: hidden; }
 .header { position: absolute; left: 16px; top: 14px; right: 16px; z-index: 1000; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; }
 .header > * { pointer-events: auto; }
