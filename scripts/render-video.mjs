@@ -15,6 +15,8 @@ const PRESETS = {
   'regional-portrait': { orientation: 'portrait', variant: 'regional' },
   'regional-landscape': { orientation: 'landscape', variant: 'regional' },
   'regional-square': { orientation: 'square', variant: 'regional' },
+  'regional-portrait-60s': { orientation: 'portrait', variant: 'regional', hoursPerSec: 1 }, // 56 s + kartu = 60 s
+  'regional-landscape-60s': { orientation: 'landscape', variant: 'regional', hoursPerSec: 1 },
   'ciangsana-portrait': { orientation: 'portrait', variant: 'ciangsana', start: '2026-09-05T05:00:00Z', end: '2026-09-06T12:00:00Z', hoursPerSec: 1.5 },
   'ciangsana-square': { orientation: 'square', variant: 'ciangsana', start: '2026-09-05T05:00:00Z', end: '2026-09-06T12:00:00Z', hoursPerSec: 1.5 },
   'teaser-portrait': { orientation: 'portrait', variant: 'teaser', start: '2026-09-05T12:00:00Z', end: '2026-09-06T03:00:00Z', hoursPerSec: 1.5, intro: 1.5, outro: 1.5 },
