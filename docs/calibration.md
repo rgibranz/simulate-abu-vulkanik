@@ -39,3 +39,14 @@ Alasan:
 
 - Kepadatan abu rendah di atas Jakarta tetap tipis (puluhan partikel), karena hanya ~13 % emisi yang berada di bawah 6,1 km. Menaikkan `umbrellaFraction` ke 0,4 tidak memperbaiki waktu tiba. Kandidat v2: emisi lapisan rendah terpisah atau lebih banyak partikel.
 - Angin model di 850 hPa mendorong ke barat 15–30 km/jam; komponen timur hanya ada di 700 hPa (≈3 km). Kalau nanti dapat data angin analisis (ERA5/BMKG), ulangi sweep ini.
+
+## Addendum 6 Sep 2026 — per model angin (nudge 0,7, K_h 6000, radius Jakarta 60 km)
+
+| model | 175 low | 179 low | 183 low | 184 low | Jakarta ≤60 km pertama | rendah dekat JKT @179/183/184 |
+|---|---|---|---|---|---|---|
+| best (Open-Meteo) | 0.77 | 0.76 | 0.82 | 0.95 | Sab 19:10 | 13/6/26 |
+| ECMWF IFS 0,25° | 0.77 | 0.76 | 0.81 | 0.96 | Sab 19:10 | 13/11/29 |
+| GFS | 0.78 | 0.74 | 0.81 | 0.95 | Sab 20:10 | 1/1/26 |
+| ICON | 0.77 | 0.76 | 0.82 | 0.95 | Sab 19:10 | 13/6/26 |
+
+Perbedaan antarmodel kecil karena nudge 0,7 mendominasi lapisan rendah; "best match" Open-Meteo ternyata identik dengan ICON di wilayah ini. ECMWF sedikit lebih banyak menaruh abu rendah dekat Jakarta pada 6 Sep 07:10 WIB. Default tetap `best`; pengguna bisa mengganti model di panel lapisan. ERA5 belum tersedia (jeda ±5 hari) — ulangi tabel ini kalau sudah ada.

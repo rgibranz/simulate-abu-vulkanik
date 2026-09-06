@@ -77,3 +77,17 @@ Link:
 
 - Kawah Anak Krakatau: 6.102°S, 105.423°E (VAAC `S0606 E10525`), elevasi 155 m (VAAC) / puncak ±285 m.
 - Konversi: FL = ratusan kaki; FL200 ≈ 6,1 km, FL500 ≈ 15,2 km. 1 kt = 1,852 km/jam.
+
+## 7. Tambahan (6 Sep 2026, sore)
+
+### Model angin alternatif (`raw/wind/open-meteo-grid-1deg-<model>-2026-09-04_07.json`)
+Grid dan variabel sama dengan §2, `models=ecmwf_ifs025` (ECMWF IFS 0,25°), `gfs_seamless` (NOAA GFS), `icon_seamless` (DWD ICON). ERA5 **belum tersedia** untuk 4–6 Sep saat diambil (Open-Meteo archive masih `null`, ERA5 punya jeda ±5 hari; archive API juga tidak menyediakan level tekanan). Hasil build: `public/data/wind-{ecmwf,gfs,icon}.json`.
+
+### Citra Himawari-9 (`raw/himawari/`, gitignored ±50 MB; hasil di `public/data/himawari/`)
+Sumber: RAMMB/CIRA SLIDER, produk `geocolor` full disk, zoom 3 (tile 688 px, ±2 km/px), per jam 4 Sep 16Z – 7 Sep 00Z.
+URL tile: `https://slider.cira.colostate.edu/data/imagery/YYYY/MM/DD/himawari---full_disk/geocolor/<YYYYMMDDHHMMSS>/03/<row>_<col>.png`; daftar waktu: `.../data/json/himawari/full_disk/geocolor/<YYYYMMDD>_by_hour.json`.
+Reproyeksi: proyeksi geostasioner CGMS (sub-satelit 140,7°E, grid 1 km COFF 5500,5 / CFAC 40932549) → Web Mercator 100–112°E, 11–2°S, 960 px lebar, JPEG q80 (`scripts/build-himawari.mjs`). Malam hari geocolor memakai kanal inframerah (awan abu tampak terang).
+Sumber lain yang dicoba: NICT himawari8.nict.go.jp (timeout dari jaringan ini), JMA mscweb (hanya beberapa jam terakhir), BMKG satelit (redirect/JS).
+
+### Laporan hujan abu tambahan (17 titik, di `curated/events.json`)
+Tanggamus (Pematang Sawa ±06.00 WIB Sabtu; Kota Agung dkk., 10 kecamatan hari kedua) — iNews; Lampung Selatan (Bakauheni, Penengahan, Kalianda, Rajabasa, Pulau Sebesi) — Monitor Indonesia, Kompas; Pesisir Barat — Radar Lampung; Kaur (Bengkulu) — Kompas Travel; Pandeglang (Labuan, Carita, Pulosari, Menes, Jiput, kota) — RRI, detik, Radar Banten; Cilegon/Anyer, Merak, Bogor, Cibinong — Tribunnews, Radar Banten; Tangerang (Karang Tengah) — Antara Banten; Tangsel (Pondok Cabe, Ciputat) — detik; Jakarta Barat, Depok, Bekasi — IDN Times. Jam sebagian besar perkiraan dari frasa "Sabtu sore/malam", "Minggu pagi".
