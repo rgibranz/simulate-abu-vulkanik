@@ -9,7 +9,7 @@
     <div class="row"><span class="line low"></span><span>Awan VAAC sampai FL200</span></div>
     <div class="row"><span class="line high"></span><span>Awan VAAC sampai FL500</span></div>
     <div class="row"><span class="dot ashfall"></span><span>Laporan hujan abu</span><span class="dot aviation gap"></span><span>Bandara ditutup</span></div>
-    <p class="note">Jumlah partikel hanya ilustrasi, bukan massa abu. Angin berasal dari model cuaca, bukan pengamatan.</p>
+    <p class="note">Jumlah partikel hanya ilustrasi, bukan massa abu. Angin berasal dari model cuaca, bukan pengamatan. Citra satelit: Himawari-9 geocolor per jam (RAMMB/CIRA), siang warna asli, malam dari kanal inframerah.</p>
   </section>
 </template>
 

@@ -19,11 +19,15 @@ export function useDatasets({ fetchFn = (u) => fetch(u), baseUrl = import.meta.e
     return res.json()
   }
 
+  // dataset opsional: kalau nggak ada, jadi null (bukan error)
+  const OPTIONAL_FILES = { himawari: 'himawari/index.json' }
+
   async function load() {
     status.value = 'loading'; error.value = null
     try {
       const entries = await Promise.all(Object.entries(FILES).map(async ([key, file]) => [key, await fetchJson(file)]))
-      data.value = Object.fromEntries(entries)
+      const optional = await Promise.all(Object.entries(OPTIONAL_FILES).map(async ([key, file]) => [key, await fetchJson(file).catch(() => null)]))
+      data.value = Object.fromEntries([...entries, ...optional])
       windCache.set('best', data.value.wind)
       status.value = 'ready'
     } catch (e) { error.value = e.message; status.value = 'error' }

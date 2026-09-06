@@ -20,7 +20,9 @@ const emit = defineEmits(['close'])
       <h3>Sumber data</h3>
       <ul>
         <li>Advisory abu vulkanik VAAC Darwin, lewat VolcanoDiscovery dan bom.gov.au</li>
-        <li>Angin Open-Meteo di 10 m serta 850, 700, 500, 300, 200, dan 100 hPa</li>
+        <li>Angin Open-Meteo di 10 m serta 850, 700, 500, 300, 200, dan 100 hPa (best match, ECMWF IFS 0,25°, GFS, ICON)</li>
+        <li>Citra Himawari-9 geocolor per jam dari RAMMB/CIRA SLIDER, direproyeksi ke Web Mercator</li>
+        <li>PM10 dan PM2.5 dari model CAMS (Open-Meteo Air Quality)</li>
         <li>PVMBG dan MAGMA Indonesia, pernyataan BMKG, serta pemberitaan media untuk kronologi kejadian</li>
         <li>Batas provinsi dari superpikar/indonesia-geojson (BAKOSURTANAL 1:250k)</li>
       </ul>

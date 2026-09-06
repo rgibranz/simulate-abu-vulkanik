@@ -8,7 +8,7 @@ describe('useDatasets', () => {
     const ds = useDatasets({ fetchFn: okFetch, baseUrl: '/app/' })
     await ds.load()
     expect(ds.status.value).toBe('ready')
-    expect(Object.keys(ds.data.value).sort()).toEqual(['airQuality', 'eruptionSource', 'events', 'places', 'provinces', 'vaac', 'wind'])
+    expect(Object.keys(ds.data.value).sort()).toEqual(['airQuality', 'eruptionSource', 'events', 'himawari', 'places', 'provinces', 'vaac', 'wind'])
     expect(ds.data.value.eruptionSource.url).toBe('/app/data/eruption-source.json')
   })
   it('loadWind fetches model files once and reuses the default', async () => {
@@ -20,6 +20,11 @@ describe('useDatasets', () => {
     const ecmwf = await ds.loadWind('ecmwf'); await ds.loadWind('ecmwf')
     expect(ecmwf.url).toBe('/data/wind-ecmwf.json'); expect(calls.length).toBe(n + 1)
     await expect(ds.loadWind('nope')).rejects.toThrow(/Unknown wind model/)
+  })
+  it('tolerates a missing optional dataset', async () => {
+    const ds = useDatasets({ fetchFn: async (url) => ({ ok: !url.includes('himawari'), status: 404, json: async () => ({ url }) }), baseUrl: '/' })
+    await ds.load()
+    expect(ds.status.value).toBe('ready'); expect(ds.data.value.himawari).toBeNull()
   })
   it('reports which file failed', async () => {
     const ds = useDatasets({ fetchFn: async (url) => ({ ok: !url.endsWith('vaac.json'), status: 404, json: async () => ({}) }), baseUrl: '/' })

@@ -7,8 +7,9 @@ import { WindArrowLayer } from '../map/WindArrowLayer.js'
 import { createVaacAdvisories } from '../engine/vaacAdvisories.js'
 import { createDepositionGrid } from '../engine/deposition.js'
 import { locatedEventsUpTo } from '../utils/events.js'
-import { formatWibShort } from '../utils/formatTime.js'
+import { formatWib, formatWibShort } from '../utils/formatTime.js'
 import { summarizePoint } from '../utils/mapInfo.js'
+import { pickFrame } from '../utils/satelliteFrames.js'
 import { simConfig } from '../config/simConfig.js'
 
 const props = defineProps({
@@ -19,8 +20,9 @@ const props = defineProps({
 })
 
 const container = ref(null)
-let map, particleLayer, depositionLayer, windArrowLayer, provinceLayer, placeGroup, offFrame
-let vaacGroup, vaacForecastGroup, eventGroup, shownAdvisoryNr = null, shownEventIds = ''
+const satelliteCaption = ref('')
+let map, particleLayer, depositionLayer, windArrowLayer, provinceLayer, placeGroup, satelliteLayer, offFrame
+let vaacGroup, vaacForecastGroup, eventGroup, shownAdvisoryNr = null, shownEventIds = '', shownSatelliteFile = null
 let lastFrame = null
 const { domain, deposition } = simConfig
 const vaacAdvisories = createVaacAdvisories(props.datasets.vaac)
@@ -84,6 +86,20 @@ function updateEventMarkers(tMs) {
   }
 }
 
+// citra Himawari: frame terakhir ≤ t (maks 90 menit), opacity 0 kalau nggak ada
+function updateSatellite(tMs) {
+  const ds = props.datasets.himawari
+  if (!satelliteLayer || !ds) return
+  const frame = pickFrame(ds.frames, tMs)
+  const file = frame?.file ?? null
+  if (file !== shownSatelliteFile) {
+    shownSatelliteFile = file
+    if (file) satelliteLayer.setUrl(`${import.meta.env.BASE_URL}data/himawari/${file}`)
+    satelliteLayer.setOpacity(file ? 0.85 : 0)
+  }
+  satelliteCaption.value = frame ? `Himawari-9 geocolor · ${formatWib(frame.tMs)}` : 'Citra Himawari-9 belum tersedia untuk waktu ini'
+}
+
 function toggleGroup(layer, on) {
   if (!layer) return
   if (on && !map.hasLayer(layer)) layer.addTo(map)
@@ -96,6 +112,7 @@ function applyLayers() {
   depositionLayer.setVisible(l.ashfall)
   toggleGroup(vaacGroup, l.vaac); toggleGroup(vaacForecastGroup, l.vaacForecast)
   toggleGroup(eventGroup, l.places); toggleGroup(placeGroup, l.places); toggleGroup(provinceLayer, l.provinces)
+  toggleGroup(satelliteLayer, l.satellite); if (l.satellite) updateSatellite(props.simulation.currentTimeMs.value)
   windArrowLayer.setState({ visible: l.wind, levelIndex: l.windLevel, tMs: props.simulation.currentTimeMs.value })
 }
 
@@ -127,6 +144,11 @@ onMounted(() => {
     attribution: 'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, DeLorme, NAVTEQ',
     maxZoom: 16,
   }).addTo(map)
+  // pane citra satelit: di atas tile dasar (200), di bawah overlay canvas/vektor (400)
+  map.createPane('satellite'); map.getPane('satellite').style.zIndex = 250
+  const hw = props.datasets.himawari
+  if (hw) satelliteLayer = L.imageOverlay('', hw.bounds, { opacity: 0, pane: 'satellite', interactive: false, attribution: 'Himawari-9 &copy; JMA, via RAMMB/CIRA' })
+
   provinceLayer = L.geoJSON(props.datasets.provinces, { style: { color: '#8a94a6', weight: 1, fillOpacity: 0.02, interactive: false } }).addTo(map)
   addPlaces(props.datasets.places)
 
@@ -154,6 +176,7 @@ onMounted(() => {
 watch(() => props.simulation.currentTimeMs.value, (t) => {
   if (!map) return
   updateVaac(t); updateEventMarkers(t)
+  if (props.layers.satellite) updateSatellite(t)
   windArrowLayer.setState({ visible: props.layers.wind, levelIndex: props.layers.windLevel, tMs: t })
 })
 watch(() => ({ ...props.layers }), () => { if (map) applyLayers() }, { deep: true })
@@ -166,10 +189,13 @@ defineExpose({ getMap: () => map, getParticleLayer: () => particleLayer, getDepo
 
 <template>
   <div ref="container" class="map"></div>
+  <div v-if="layers.satellite && satelliteCaption" class="sat-caption">{{ satelliteCaption }}</div>
 </template>
 
 <style scoped>
 .map { position: absolute; inset: 0; background: #0b0e13; }
+.sat-caption { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); z-index: 1000; padding: 4px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font-size: 12px; color: var(--ash); white-space: nowrap; pointer-events: none; }
+@media (max-width: 767px) { .sat-caption { top: auto; bottom: 176px; left: 12px; transform: none; } }
 </style>
 
 <style>
