@@ -10,22 +10,23 @@ const current = computed(() => latestEventAt(props.events, props.currentTimeMs))
 <template>
   <transition name="fade">
     <article v-if="current" :key="current.id" class="card" :class="current.kind">
-      <div class="when">{{ formatWib(Date.parse(current.timeUtc)) }}</div>
+      <time class="when">{{ formatWib(Date.parse(current.timeUtc)) }}</time>
       <h3>{{ current.title }}</h3>
       <p>{{ current.description }}</p>
-      <a :href="current.sourceUrl" target="_blank" rel="noopener">Source ↗</a>
+      <a :href="current.sourceUrl" target="_blank" rel="noopener">Read the source</a>
     </article>
   </transition>
 </template>
 
 <style scoped>
-.card { position: absolute; left: 12px; top: 84px; z-index: 1000; width: min(340px, calc(100vw - 24px)); padding: 12px 14px; background: rgba(12, 15, 21, .88); border-left: 3px solid #9aa3b2; border-radius: 6px; color: #e6e9ef; }
-.card.eruption { border-color: #ff5a3c; } .card.ashfall { border-color: #d69630; } .card.aviation { border-color: #ffd166; } .card.advisory { border-color: #7fd1ff; }
-.when { font-size: 11px; color: #9aa3b2; }
-h3 { margin: 4px 0 6px; font-size: 15px; }
-p { margin: 0 0 6px; font-size: 13px; line-height: 1.4; }
-a { font-size: 12px; color: #7fd1ff; }
+.card { position: absolute; left: 16px; top: 96px; z-index: 1000; width: min(340px, calc(100vw - 32px)); padding: 12px 16px 12px 14px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--ash); border-radius: 4px; color: var(--bone); backdrop-filter: blur(8px); }
+.card.eruption { border-left-color: var(--ember); } .card.ashfall { border-left-color: var(--ashfall); } .card.aviation { border-left-color: #ffd166; } .card.advisory { border-left-color: var(--sky); }
+.when { display: block; font-size: 12px; color: var(--ash); font-variant-numeric: tabular-nums; }
+h3 { margin: 3px 0 6px; font-size: 16px; font-weight: 600; line-height: 1.25; }
+p { margin: 0 0 8px; font-size: 13px; line-height: 1.45; color: var(--bone); max-width: 44ch; }
+a { font-size: 12px; color: var(--sky); text-decoration: none; border-bottom: 1px solid rgba(127, 209, 255, 0.4); }
+a:hover { border-bottom-color: var(--sky); }
 .fade-enter-active, .fade-leave-active { transition: opacity .25s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
-@media (max-width: 767px) { .card { top: 56px; } }
+@media (max-width: 767px) { .card { top: 60px; } }
 </style>

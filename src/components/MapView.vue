@@ -82,7 +82,8 @@ function applyLayers() {
 }
 
 onMounted(() => {
-  map = L.map(container.value, { center: [-6.3, 106.2], zoom: 7, zoomControl: true, attributionControl: true })
+  map = L.map(container.value, { center: [-6.3, 106.2], zoom: 7, zoomControl: false, attributionControl: true })
+  L.control.zoom({ position: 'bottomright' }).addTo(map) // kiri-atas dipakai judul
   // CARTO sekarang minta API key; Esri Dark Gray Canvas gratis dengan atribusi
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
     attribution: 'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, DeLorme, NAVTEQ',
@@ -135,4 +136,13 @@ defineExpose({ getMap: () => map, getParticleLayer: () => particleLayer, getDepo
 .place-label { background: transparent; border: none; box-shadow: none; color: #e6e9ef; font: 11px system-ui, sans-serif; text-shadow: 0 0 3px #000; }
 .place-label::before { display: none; }
 .volcano-icon { color: #ff5a3c; font-size: 18px; line-height: 20px; text-align: center; text-shadow: 0 0 6px #000; }
+/* kontrol bawah Leaflet naik di atas timeline bar */
+.leaflet-bottom { bottom: 92px; }
+.leaflet-bar a { background: var(--smoke); color: var(--bone); border-bottom-color: var(--line); }
+.leaflet-bar a:hover { background: var(--ink); }
+.leaflet-container .leaflet-control-attribution { background: rgba(27, 26, 25, 0.75); color: var(--ash); font-size: 10px; }
+.leaflet-container .leaflet-control-attribution a { color: var(--ash); }
+.leaflet-tooltip { background: var(--smoke); color: var(--bone); border: 1px solid var(--line); font: 12px var(--font); }
+.leaflet-tooltip-top::before { border-top-color: var(--line); }
+@media (max-width: 767px) { .leaflet-bottom { bottom: 150px; } }
 </style>
